@@ -2,9 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-import React from "react";
+import React, { useState } from "react";
 import './style.css';
 import communityImage from "../../images/community.png";
+import { stateManager } from "../../../state-context";
+import { useConnectModal, ConnectButton } from '@rainbow-me/rainbowkit';
+import { TextBox } from "../../components/TextBox/TextBox";
 
 
 /**
@@ -12,6 +15,24 @@ import communityImage from "../../images/community.png";
  */
 
 export function Registration() {
+
+  // RainbowKit hooks
+  const { openConnectModal } = useConnectModal();
+
+  // Model state data
+  const appState = stateManager.useStateData('state')();
+  const appError = stateManager.useStateData('error')();
+  
+  // Local state data
+  const [name, setName] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [discord, setDiscord] = useState('');
+  const [telegram, setTelegram] = useState('');
+
+  const usernamesValid = 
+    twitter.length > 0 &&
+    discord.length > 0 &&
+    telegram.length > 0;
 
   return (
     <>
@@ -33,17 +54,78 @@ export function Registration() {
         </div>
 
         <div className="page-width-section">
-          <span className="section-title indent-with-feature">Register</span>
-          <div className="button-row indent-with-feature">
-            <a href="https://github.com/Bubble-Protocol/bubble-sdk" target="_blank"><div className="cta-button-solid">Start Building</div></a>
-            <a href="how-it-works.html"><div className="cta-button-hollow">How It Works</div></a>
-          </div>
+          <span className="section-title">Register</span>
+
+          {/* Spinner View */}
+          {appState === 'initialising' && <div className="loader"></div>}
+
+          {/* Failure Views */}
+          {appState === 'new' && <p>Unexpected app state 'New'</p>}
+          {appState === 'failed' && <p>Unexpected app state 'Failed'</p>}
+
+          {/* Connect View */}
+          {appState === 'closed' &&
+            <>
+              <p>To register with the Bubble Protocol community you first need to connect your wallet.</p>
+              <div className="button-row">
+                <div className="cta-button-hollow" onClick={openConnectModal}>Connect Wallet</div>
+              </div>
+            </>
+          }
+
+          {/* Registration View */}
+          {appState === 'initialised' &&
+            <>
+              <ConnectButton />
+              <div className="section-paragraphs">
+                <p>
+                  Register to join the Bubble Community. 
+                  Any rewards or NFTs you earn through your social media activities will be sent to the above address.
+                  Registration is performed on-chain and requires a network fee.
+                </p>
+                <p><i>
+                  Your data is encrypted and stored securely in an off-chain bubble on the Bubble Private Cloud. 
+                  You have full control of your data and can delete it at any time.  
+                  Bubble Protocol has read access to your data for the purposes of its referral program and other community promotions.
+                </i></p>
+              </div>
+              <div className="form">
+                <div className="row">
+                  <div className="label">Name</div>
+                  <TextBox text={name} onChange={setName} />
+                </div>
+                <div className="row">
+                  <div className="label">Twitter User*</div>
+                  <TextBox text={twitter} onChange={setTwitter} />
+                </div>
+                <div className="row">
+                  <div className="label">Discord User*</div>
+                  <TextBox text={discord} onChange={setDiscord} />
+                </div>
+                <div className="row">
+                  <div className="label">Telegram User*</div>
+                  <TextBox text={telegram} onChange={setTelegram} />
+                </div>
+              </div>
+              <p className="center">Please check the usernames above carefully before registering. If any of the details are incorrect you may not get credit for your earnings.</p>
+              <div className="button-row center">
+                <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")}>Register</div>
+              </div>
+            </>
+          }
+
+          {/* Error log */}
+          {appError && <span className='error-text'>{formatError(appError)}</span>}
+
         </div>
 
-        <div className="button-row">
-          <a href="https://github.com/Bubble-Protocol/bubble-sdk" target="_blank"><div className="cta-button-solid">Register</div></a>
-        </div>
     </>
   );
 
 }
+
+
+function formatError(error) {
+  return error.details || error.message || error;
+}
+

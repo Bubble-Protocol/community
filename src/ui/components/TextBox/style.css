@@ -1,0 +1,40 @@
+.textbox {
+  flex: 1;
+  align-self: stretch;
+  align-items: center;
+  border: 2px solid;
+  border-color: #2E99E4;
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  padding: 12px 16px;
+  position: relative;
+}
+
+.textbox .text {
+  color: #666666;
+  flex: 1;
+  font-family: "Arial-Regular", Helvetica;
+  font-size: 14px;
+  font-weight: 400;
+  height: 16px;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  border: none;
+}
+
+.textbox input:focus{
+  outline: none;
+}
+
+.textbox .invalid {
+  color: rgb(172, 24, 24);
+}
+
+.textbox input:disabled {
+  background-color: inherit;
+}

@@ -9,6 +9,7 @@ import { WagmiConfig } from 'wagmi';
 import UI from './ui/App.js';
 import { rainbowKitConfig } from './rainbow-kit.js';
 import ImportedHTML from './ui/components/ImportedHTML/ImportedHTML.js';
+import { CommunityApp } from './model/App.js';
 
 /**
  * @dev Add trace and debug commands to the console. Use `console.stackTrace` to dump the stack.
@@ -23,7 +24,7 @@ console.debug = DEBUG_ON ? Function.prototype.bind.call(console.info, console, "
 /**
  * @dev Construct the model
  */
-//TODO const app = 
+const app = new CommunityApp();
 
 /**
  * @dev Render the UI
