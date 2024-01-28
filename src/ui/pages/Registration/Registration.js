@@ -22,12 +22,22 @@ export function Registration() {
   // Model state data
   const appState = stateManager.useStateData('state')();
   const appError = stateManager.useStateData('error')();
+  const { register } = stateManager.useStateData('communityFunctions')();
   
   // Local state data
+  const [registering, setRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState(false);
   const [name, setName] = useState('');
   const [twitter, setTwitter] = useState('');
   const [discord, setDiscord] = useState('');
   const [telegram, setTelegram] = useState('');
+
+  function registerUser() {
+    setRegistering(true);
+    register({ name, twitter, discord, telegram })
+      .then(() => setRegistering(false))
+      .catch(setRegisterError);
+  }
 
   const usernamesValid = 
     twitter.length > 0 &&
@@ -109,13 +119,15 @@ export function Registration() {
               </div>
               <p className="center">Please check the usernames above carefully before registering. If any of the details are incorrect you may not get credit for your earnings.</p>
               <div className="button-row center">
-                <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")}>Register</div>
+                {!registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid && registerUser}>Register</div>}
+                {registering && <div className="loader small"></div>}
               </div>
             </>
           }
 
           {/* Error log */}
           {appError && <span className='error-text'>{formatError(appError)}</span>}
+          {registerError && <span className='error-text'>{formatError(registerError)}</span>}
 
         </div>
 

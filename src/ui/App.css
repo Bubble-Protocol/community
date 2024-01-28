@@ -31,7 +31,7 @@
     transform: rotateY(70deg);
     animation-delay: .4s;
   }
-  .loader-small {
+  .loader.small {
     width: 16px;
     height: 16px;
   }

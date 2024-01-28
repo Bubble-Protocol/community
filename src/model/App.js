@@ -3,9 +3,11 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 import { stateManager } from '../state-context';
+import { DEFAULT_CONFIG } from './config';
 import { Wallet } from './Wallet';
 import { Session } from './Session';
 import { polygon } from 'wagmi/chains';
+import { Community } from './Community';
 
 /**
  * @dev ID used to prefix all local storage entries
@@ -64,6 +66,11 @@ export class CommunityApp {
   wallet;
 
   /**
+   * @dev Interface to the BubbleCommunity smart contract.
+   */
+  community;
+
+  /**
    * @dev Constructs the RainbowKit wallet handler and sets up the initial UI state.
    */
   constructor() {
@@ -71,12 +78,19 @@ export class CommunityApp {
     this.wallet = new Wallet();
     this.wallet.on('account-changed', this._accountChanged.bind(this));
 
+    // Construct the Community
+    this.community = new Community(DEFAULT_CONFIG.community, this.wallet);
+
     // Register UI state data
     stateManager.register('state', this.state);
+    stateManager.register('isMember', false);
     stateManager.register('error');
 
     // Register UI functions
     stateManager.register('walletFunctions', {
+    });
+    stateManager.register('communityFunctions', {
+      register: this._register
     });
   }
 
@@ -104,15 +118,35 @@ export class CommunityApp {
    */
   async _initialiseSession() {
     this._setState(STATES.initialising);
+    stateManager.dispatch('isMember', false);
     return this.session.initialise()
       .then(() => {
-        this._setState(STATES.initialised);
+        this._checkAccountIsMember();
       })
       .catch(error => {
         console.warn(error);
         this._setState(this.session.isNew() ? STATES.new : STATES.failed);
         stateManager.dispatch('error', error)
       });
+  }
+
+  /**
+   * @dev Register a new member
+   */
+  _register(details) {
+    return this.community.register(details)
+      .then(this._checkAccountIsMember);
+  }
+
+  /**
+   * @dev Refreshes the `isMember` state for the current wallet account
+   */
+  _checkAccountIsMember() {
+    return this.community.isMember(this.wallet.account)
+    .then(result => {
+      stateManager.dispatch('isMember', result);
+      this._setState(STATES.initialised);
+    });
   }
 
   /**
