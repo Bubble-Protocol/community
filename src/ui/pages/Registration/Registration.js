@@ -35,8 +35,8 @@ export function Registration() {
   function registerUser() {
     setRegistering(true);
     register({ name, twitter, discord, telegram })
-      .then(() => setRegistering(false))
-      .catch(setRegisterError);
+      .catch(setRegisterError)
+      .finally(() => setRegistering(false));
   }
 
   const usernamesValid = 
@@ -119,15 +119,15 @@ export function Registration() {
               </div>
               <p className="center">Please check the usernames above carefully before registering. If any of the details are incorrect you may not get credit for your earnings.</p>
               <div className="button-row center">
-                {!registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid && registerUser}>Register</div>}
+                {!registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? registerUser : null}>Register</div>}
                 {registering && <div className="loader small"></div>}
               </div>
             </>
           }
 
           {/* Error log */}
-          {appError && <span className='error-text'>{formatError(appError)}</span>}
-          {registerError && <span className='error-text'>{formatError(registerError)}</span>}
+          {appError && <span className='error-text center'>Error!<br/>{formatError(appError)}</span>}
+          {registerError && <span className='error-text center'>Registration Failed!<br/>{formatError(registerError)}</span>}
 
         </div>
 
@@ -138,6 +138,7 @@ export function Registration() {
 
 
 function formatError(error) {
+  if (error.code === 'username-registered') return "One of your usernames has already been registered";
   return error.details || error.message || error;
 }
 

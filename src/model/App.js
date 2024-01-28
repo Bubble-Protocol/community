@@ -90,7 +90,7 @@ export class CommunityApp {
     stateManager.register('walletFunctions', {
     });
     stateManager.register('communityFunctions', {
-      register: this._register
+      register: this._register.bind(this)
     });
   }
 
@@ -135,7 +135,7 @@ export class CommunityApp {
    */
   _register(details) {
     return this.community.register(details)
-      .then(this._checkAccountIsMember);
+      .then(this._checkAccountIsMember.bind(this));
   }
 
   /**

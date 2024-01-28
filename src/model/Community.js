@@ -39,7 +39,7 @@ export class Community {
     if (!details.telegram) return Promise.reject('missing telegram username');
     const socialHashes = [keccak256('twitter:'+details.twitter), keccak256('discord:'+details.discord), keccak256('telegram:'+details.telegram)];
     console.log("registering on blockchain:", account, socialHashes);
-    return this.wallet.send(this.contract.address, this.contract.abi, 'registerAsMember', [socialHashes])
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [socialHashes])
     .then(() => this.isMember(account))
   }
 

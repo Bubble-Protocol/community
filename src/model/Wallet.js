@@ -132,6 +132,11 @@ export class Wallet {
     .catch(parseRevertError);
   }
 
+  async estimateAndSend(contractAddress, abi, method, params=[]) {
+    return this.estimateGas(contractAddress, abi, method, params)
+    .then(() => this.send(contractAddress, abi, method, params));
+  }
+
   async switchChain(chainId, chainName) {
     if (assert.isString(chainId)) chainId = parseInt(chainId);
     try {
@@ -168,15 +173,12 @@ function parseRevertError(error) {
   if (!error || !error.message) throw error;
   console.warn(error);
   const revertMatch = error.message.match(/reverted with the following reason:\s*(.*)\s/);
-  if (error instanceof ContractFunctionExecutionError) {
+  if ((!revertMatch || !revertMatch[1]) && error instanceof ContractFunctionExecutionError) {
     throw new AppError("Cannot access the blockchain. Are you online?", {code: 'timeout', cause: error.message});
   }
   else if (revertMatch && revertMatch[1]) {
     const code =
-      revertMatch[1] === 'user not registered or incorrect username' ? 'user-error' :
-      revertMatch[1] === 'hash is zero' ? 'internal-error' :
-      revertMatch[1] === 'content already published' ? 'already-published' :
-      revertMatch[1] === 'content path already published' ? 'already-published' :
+      revertMatch[1] === 'username already registered' ? 'username-registered' :
       'contract-reverted';
     throw new AppError(revertMatch[1], {code: code, cause: error.message});
   }
