@@ -86,38 +86,61 @@ export function Registration() {
           {/* Registration View */}
           {appState === 'initialised' &&
             <>
-              <ConnectButton />
               <div className="section-paragraphs">
                 <p>
                   Register to join the Bubble Community. 
-                  Any rewards or NFTs you earn through your social media activities will be sent to the above address.
-                  Registration is performed on-chain and requires a network fee.
+                  Any rewards or NFTs you earn through your social media activities will be sent to your wallet address.
+                  Registration is performed on-chain on the Polygon network and requires a network fee.
                 </p>
-                <p><i>
+                <p className="disclaimer">
                   Your data is encrypted and stored securely in an off-chain bubble on the Bubble Private Cloud. 
                   You have full control of your data and can delete it at any time.  
-                  Bubble Protocol has read access to your data for the purposes of its referral program and other community promotions.
-                </i></p>
+                  Bubble Protocol has read access to your data for the purposes of implementing its referral program and other community promotions.
+                  Your data will never be shared with anyone.
+                </p>
               </div>
               <div className="form">
                 <div className="row">
                   <div className="label">Name</div>
                   <TextBox text={name} onChange={setName} />
                 </div>
-                <div className="row">
-                  <div className="label">Twitter User*</div>
-                  <TextBox text={twitter} onChange={setTwitter} />
+                <div className="dividing-line"></div>
+                <div className="social-row">
+                  <div className="row border-top">
+                    <div className="social-title">Twitter<span className="red"> *</span></div>
+                    <a className="social-link" href="https://twitter.com/BubbleProtocol" target="_blank">Follow Us</a>
+                  </div>
+                  <div className="row">
+                    <div className="label">Username</div>
+                    <TextBox text={twitter} onChange={setTwitter} />
+                  </div>
                 </div>
-                <div className="row">
-                  <div className="label">Discord User*</div>
-                  <TextBox text={discord} onChange={setDiscord} />
+                <div className="dividing-line"></div>
+                <div className="social-row">
+                  <div className="row border-top">
+                    <div className="social-title">Discord<span className="red"> *</span></div>
+                    <a className="social-link" href="https://discord.gg/sSnvK5C" target="_blank">Join Our Discord Server</a>
+                  </div>
+                  <div className="row">
+                    <div className="label">Username</div>
+                    <TextBox text={discord} onChange={setDiscord} />
+                  </div>
                 </div>
-                <div className="row">
-                  <div className="label">Telegram User*</div>
-                  <TextBox text={telegram} onChange={setTelegram} />
+                <div className="dividing-line"></div>
+                <div className="social-row">
+                  <div className="row border-top">
+                    <div className="social-title">Telegram<span className="red"> *</span></div>
+                    <a className="social-link" href="https://t.me/+hzBnwu75AlMyNjBk" target="_blank">Join Our Telegram Server</a>
+                  </div>
+                  <div className="row">
+                    <div className="label">Username</div>
+                    <TextBox text={telegram} onChange={setTelegram} />
+                  </div>
                 </div>
+                <div className="dividing-line"></div>
               </div>
               <p className="center">Please check the usernames above carefully before registering. If any of the details are incorrect you may not get credit for your earnings.</p>
+              <div className="center"><ConnectButton /></div>
               <div className="button-row center">
                 {!registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? registerUser : null}>Register</div>}
                 {registering && <div className="loader small"></div>}

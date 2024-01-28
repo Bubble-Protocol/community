@@ -2,6 +2,10 @@
   color: #a00;
 }
 
+.red {
+  color: #f00;
+}
+
 .footer-container {
   box-sizing: border-box;
   width: 100%;

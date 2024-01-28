@@ -1,7 +1,7 @@
 {
   "name": "bubble-community",
   "version": "0.0.1",
-  "homepage": "/",
+  "homepage": "/community",
   "private": true,
   "dependencies": {
     "@bubble-protocol/client": "^0.1.2",
