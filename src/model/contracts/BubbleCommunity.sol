@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "IMemberRegistry.sol";
 import "../EternalStorage.sol";
+import "AccessControlledStorage.sol";
+import "AccessControlBits.sol";
 
 
 /**
@@ -86,7 +88,7 @@ contract BubbleCommunity is BubbleCommunityStorage, IMemberRegistry, Proxy {
 /**
  * Upgradeable implementation.
  */
-contract BubbleCommunityImplementation is BubbleCommunityStorage {
+contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControlledStorage {
 
   /**
    * @dev maximum number of members allowed in the community
@@ -197,6 +199,13 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage {
   }
 
   /**
+   * @dev returns `true` if the given address is a registered member of the community
+   */
+  function isMember(address member) public view returns (bool) {
+    return _members[member];
+  }
+
+  /**
    * @dev returns `true` if the given contract address is a registered NFT
    */
   function hasNFT(address nftContract) public view returns (bool) {
@@ -220,6 +229,30 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage {
       }
     }
     revert('nft not registered');
+  }
+
+  /**
+   * @dev bubble permissions
+   */
+  function getAccessPermissions( address user, uint256 contentId ) external view override returns (uint256) {
+    // Only the owner has permission to create the bubble. Member admins can read the root
+    if (contentId == 0) return 
+      hasRole(DEFAULT_ADMIN_ROLE, user) ? RWA_BITS 
+      : hasRole(MEMBER_ADMIN_ROLE, user) ? READ_BIT
+      : NO_PERMISSIONS;
+    // Only content within address range is applicable to this bubble
+    if (contentId < 2**160) {
+      address contentAddr = address(uint160(contentId));
+      if (isMember(contentAddr)) {
+        if (isMember(user) && contentAddr == user) return RWA_BITS;  // Members have rwa access to their own file
+        if (hasRole(MEMBER_ADMIN_ROLE, user)) return READ_BIT;       // Admins have read access to members' files
+      }
+      else {
+        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // Admins have rwa access to NFT directories
+        if (hasNFT(contentAddr)) return READ_BIT;                    // Everyone has read access to NFT directories
+      }
+    }
+    return NO_PERMISSIONS;
   }
 
 
