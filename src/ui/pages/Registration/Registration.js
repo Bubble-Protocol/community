@@ -7,7 +7,7 @@ import './style.css';
 import communityImage from "../../images/community.png";
 import { stateManager } from "../../../state-context";
 import { useConnectModal, ConnectButton } from '@rainbow-me/rainbowkit';
-import { TextBox } from "../../components/TextBox/TextBox";
+import { SocialsForm } from "./components/SocialsForm";
 
 
 /**
@@ -27,22 +27,13 @@ export function Registration() {
   // Local state data
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState(false);
-  const [name, setName] = useState('');
-  const [twitter, setTwitter] = useState('');
-  const [discord, setDiscord] = useState('');
-  const [telegram, setTelegram] = useState('');
 
-  function registerUser() {
+  function registerUser({ name, twitter, discord, telegram }) {
     setRegistering(true);
     register({ name, twitter, discord, telegram })
       .catch(setRegisterError)
       .finally(() => setRegistering(false));
   }
-
-  const usernamesValid = 
-    twitter.length > 0 &&
-    discord.length > 0 &&
-    telegram.length > 0;
 
   return (
     <>
@@ -99,52 +90,7 @@ export function Registration() {
                   Your data will never be shared with anyone.
                 </p>
               </div>
-              <div className="form">
-                <div className="row">
-                  <div className="label">Name</div>
-                  <TextBox text={name} onChange={setName} />
-                </div>
-                <div className="dividing-line"></div>
-                <div className="social-row">
-                  <div className="row border-top">
-                    <div className="social-title">Twitter<span className="red"> *</span></div>
-                    <a className="social-link" href="https://twitter.com/BubbleProtocol" target="_blank">Follow Us</a>
-                  </div>
-                  <div className="row">
-                    <div className="label">Username</div>
-                    <TextBox text={twitter} onChange={setTwitter} />
-                  </div>
-                </div>
-                <div className="dividing-line"></div>
-                <div className="social-row">
-                  <div className="row border-top">
-                    <div className="social-title">Discord<span className="red"> *</span></div>
-                    <a className="social-link" href="https://discord.gg/sSnvK5C" target="_blank">Join Our Discord Server</a>
-                  </div>
-                  <div className="row">
-                    <div className="label">Username</div>
-                    <TextBox text={discord} onChange={setDiscord} />
-                  </div>
-                </div>
-                <div className="dividing-line"></div>
-                <div className="social-row">
-                  <div className="row border-top">
-                    <div className="social-title">Telegram<span className="red"> *</span></div>
-                    <a className="social-link" href="https://t.me/+hzBnwu75AlMyNjBk" target="_blank">Join Our Telegram Server</a>
-                  </div>
-                  <div className="row">
-                    <div className="label">Username</div>
-                    <TextBox text={telegram} onChange={setTelegram} />
-                  </div>
-                </div>
-                <div className="dividing-line"></div>
-              </div>
-              <p className="center">Please check the usernames above carefully before registering. If any of the details are incorrect you may not get credit for your earnings.</p>
-              <div className="center"><ConnectButton /></div>
-              <div className="button-row center">
-                {!registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? registerUser : null}>Register</div>}
-                {registering && <div className="loader small"></div>}
-              </div>
+              <SocialsForm buttonText="Register" onRegister={registerUser} registering={registering} />
             </>
           }
 
