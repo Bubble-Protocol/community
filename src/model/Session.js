@@ -6,6 +6,7 @@ import { assert } from '@bubble-protocol/core';
 import { ecdsa } from '@bubble-protocol/crypto';
 import { Key } from '@bubble-protocol/crypto/src/ecdsa';
 import { stateManager } from '../state-context';
+import { MemberBubble } from './bubbles/MemberBubble';
 
 /**
  * @dev Application state enum. @See the `state` property below.
@@ -28,29 +29,53 @@ const STATES = {
 export class Session {
 
   state = STATES.open;
+  id;
+  account;
+  wallet;
+  community;
+  bubbleConfig;
+  memberData;
+
+  /**
+   * @dev True if this account is a member of the community
+   */
+  isMember = false;
+  isMemberAdmin = false;
+  isNftAdmin = false;
 
   /**
    * @dev The session private key, held in local storage and read on construction.
    */
-  key;
+  loginKey;
 
   /**
    * @dev Constructs this Session from the locally saved state.
    */
-  constructor(appId, account, chain, bubbleProvider, wallet) {
+  constructor(config, account, wallet, community) {
     console.trace('Constructing session');
-    assert.isString(appId, 'appId');
+    assert.isString(config.appId, 'config.appId');
+    assert.isObject(config.contract, 'config.contract');
+    assert.isNumber(config.contract.chain, 'config.contract.chain');
+    ecdsa.assert.isAddress(config.contract.address, 'config.contract.address');
+    assert.isObject(config.bubble, 'config.bubble');
+    assert.isString(config.bubble.provider, 'config.bubble.provider');
+    assert.isHexString(config.bubble.adminPublicKey, 'config.bubble.adminPublicKey');
     ecdsa.assert.isAddress(account, 'account');
-    assert.isObject(chain, 'chain');
-    assert.isNumber(chain.id, 'chain.id');
-    assert.isString(bubbleProvider, 'bubbleProvider');
     assert.isObject(wallet, 'wallet');
-    this.id = appId+'-'+chain.id+'-'+account.slice(2).toLowerCase();
+    assert.isObject(community, 'community');
+    this.id = config.appId+'-'+config.contract.chain+'-'+account.slice(2).toLowerCase();
     console.trace('session id:', this.id);
     this.account = account;
-    this.chain = chain;
-    this.bubbleProvider = bubbleProvider;
     this.wallet = wallet;
+    this.community = community;
+    this.bubbleConfig = {
+      adminPublicKey: config.bubble.adminPublicKey,
+      bubbleId: {
+        chain: config.contract.chain,
+        contract: config.contract.address,
+        provider: config.bubble.provider
+      }
+    }
     this._loadState();
   }
 
@@ -59,9 +84,10 @@ export class Session {
    * from the local saved state during construction.
    */
   async initialise() {
-
     console.trace('Initialising session');
-    // Add custom code here
+    stateManager.dispatch('isMember', false);
+    await this._checkAccountIsMember();
+    await this._refreshBubbles();
     console.trace('Session initialised');
   }
 
@@ -73,9 +99,10 @@ export class Session {
     if (this.state === STATES.loggedIn) return Promise.resolve();
     this.wallet.login(this.account)
     .then(signature => {
-      this.key = new Key(ecdsa.hash(signature));
+      this.loginKey = new Key(ecdsa.hash(signature));
       if (rememberMe) this._saveState();
       else this._calculateState();
+      return this._refreshBubbles();
     })
   }
 
@@ -83,10 +110,83 @@ export class Session {
    * @dev Logs out of the session, deleting any saved login details
    */
   logout() {
-    this.key = undefined;
+    this.loginKey = undefined;
+    this.memberData = undefined;
+    this.memberBubble = undefined;
     this._saveState();
   }
 
+  /**
+   * @dev Register a new member both on the blockchain and in the bubble
+   */
+  async register(details) {
+    if (this.state !== STATES.loggedIn) return Promise.reject("Log in before registering");
+    this.memberData = details;
+    this._saveState();
+    return this.community.register(this.loginKey.address, details)
+      .then(this._checkAccountIsMember.bind(this))
+      .then(this._refreshBubbles.bind(this))
+      .then(() => {
+        if (this.isMember && this.memberBubble) return this.memberBubble.setData(details);
+      });
+  }
+
+  /**
+   * @dev Update member data both on the blockchain and in the bubble
+   */
+  async updateMemberData(newData) {
+    if (!this.isMember) return Promise.reject('not a member');
+    if (!this.memberBubble) return Promise.reject('internal error: member bubble has not yet been constructed');
+    if (!this.memberBubble.memberData) return Promise.reject('cannot access remote bubble at this time');
+    let oldUsernames = {};
+    let newUsernames = {};
+    const oldData = this.memberBubble.data;
+    Object.keys(newData).forEach(key => {
+      if (newData[key] !== oldData[key]) { 
+        oldUsernames[key] = oldData[key];
+        newUsernames[key] = newData[key];
+      }
+    })
+    await this.community.updateSocials(oldUsernames, newUsernames);
+    await this.memberBubble.setData({...oldData, ...newData});
+    this.memberData = this.memberBubble.memberData;
+    this._saveState();
+    stateManager.dispatch('member-data', this.memberBubble.memberData);
+  }
+
+  /**
+   * @dev Refreshes the `isMember` state for the current wallet account
+   */
+  async _checkAccountIsMember() {
+    this.isMember = await this.community.isMember(this.wallet.account)
+    stateManager.dispatch('isMember', this.isMember);
+  }
+
+  /**
+   * @dev Constructs any bubbles that can now be constructed
+   */
+  async _refreshBubbles() {
+    if (this.isMember && !this.memberBubble && this.state === STATES.loggedIn) {
+      await this._constructMemberBubble();
+    }
+  }
+
+  /**
+   * @dev Constructs the member bubble, reading the member data from the bubble.
+   * Saves a local copy of the member data in case of access problems.
+   */
+  async _constructMemberBubble() {
+    if (!this.isMember) return Promise.reject('not a member');
+    this.memberBubble = new MemberBubble(this.bubbleConfig, this.account, this.loginKey);
+    await this.memberBubble.initialise();
+    if (!this.memberBubble.memberData && this.memberData) await this.memberBubble.setData(this.memberData);
+    else {
+      this.memberData = this.memberBubble.memberData;
+      this._saveState();
+    }
+    stateManager.dispatch('member-data', this.memberBubble.memberData);
+  }
+  
   /**
    * @dev Loads the Session state from localStorage
    */
@@ -95,9 +195,10 @@ export class Session {
     const stateData = stateJSON ? JSON.parse(stateJSON) : {};
     console.trace('loaded session state', stateData);
     try {
-      this.key = stateData.key ? new Key(stateData.key) : undefined;
+      this.loginKey = stateData.key ? new Key(stateData.key) : undefined;
     }
     catch(_){}
+    this.memberData = stateData.memberData || {};
     this._calculateState();
   }
 
@@ -107,7 +208,8 @@ export class Session {
   _saveState() {
     console.trace('saving session state');
     const stateData = {
-      key: this.key.privateKey
+      key: this.loginKey ? this.loginKey.privateKey : undefined,
+      memberData: this.memberData
     };
     window.localStorage.setItem(this.id, JSON.stringify(stateData));
     this._calculateState();
@@ -118,7 +220,7 @@ export class Session {
    */
   _calculateState() {
     const oldState = this.state;
-    this.state = this.key ? STATES.loggedIn : STATES.open;
+    this.state = this.loginKey ? STATES.loggedIn : STATES.open;
     if (this.state !== oldState) {
       console.trace("session state:", this.state);
       stateManager.dispatch('session-state', this.state);

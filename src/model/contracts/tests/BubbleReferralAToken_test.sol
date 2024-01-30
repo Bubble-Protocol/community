@@ -17,7 +17,7 @@ contract testSuite is testSuite_template {
         Assert.equal(nft.tokenCount(), 0, "unexpected token count");
         for (uint i=0; i<registeredAddresses.length; i++) {
             registeredAddresses[i] = address(uint160(i+2));
-            community.registerMember(registeredAddresses[i], new bytes32[](0));
+            community.registerMember(registeredAddresses[i], address(1), new bytes32[](0));
         }
     }
 
@@ -32,7 +32,7 @@ contract testSuite is testSuite_template {
 
     function canMint() public {
         additionalUser = address(uint160(registeredAddresses.length+2));
-        community.registerMember(additionalUser, new bytes32[](0));
+        community.registerMember(additionalUser, address(1), new bytes32[](0));
         nft.mint(additionalUser);
         Assert.equal(nft.tokenCount(), registeredAddresses.length+1, "unexpected token count");
     }

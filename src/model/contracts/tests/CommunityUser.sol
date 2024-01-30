@@ -8,6 +8,7 @@ import {BubbleReferralAToken} from "../nfts/BubbleReferralAToken.sol";
 contract CommunityUser {
 
     BubbleCommunityImplementation uut;
+    address public login = address(uint160(address(this)) + 1);
 
     constructor(BubbleCommunityImplementation uutAddress) {
         setUUT(uutAddress);
@@ -22,11 +23,11 @@ contract CommunityUser {
     }
     
     function registerAsMember(bytes32[] memory socials) external {
-        uut.registerAsMember(socials);
+        uut.registerAsMember(login, socials);
     }
 
     function registerMember(address member, bytes32[] memory socials) external {
-        uut.registerMember(member, socials);
+        uut.registerMember(member, login, socials);
     }
 
     function updateSocials(bytes32[] memory oldSocials, bytes32[] memory newSocials) external {

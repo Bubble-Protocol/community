@@ -16,7 +16,7 @@ contract testSuite is testSuite_template {
         member1Socials[2] = bytes32(0x0103000000000000000000000000000000000000000000000000000000000000);
         member1.registerAsMember(member1Socials);
         member2Socials[0] = bytes32(0x0201000000000000000000000000000000000000000000000000000000000000);
-        community.registerMember(address(member2), member2Socials);
+        member2.registerAsMember(member2Socials);
         Assert.equal(communityStorage.getMemberCount(), 2, 'member count should be two');
     }
 

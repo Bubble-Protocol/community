@@ -81,7 +81,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToRegisterTwiceAsAdmin() public {
-        try community.registerMember(address(member1), new bytes32[](0)) {
+        try community.registerMember(address(member1), member1.login(), new bytes32[](0)) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "already a member", "expected revert message incorrect");
@@ -105,7 +105,7 @@ contract testSuite is testSuite_template {
     function tryToRegisterSocialTwiceAsAdmin() public {
         bytes32[] memory socials = new bytes32[](1);
         socials[0] = bytes32(0x0107000000000000000000000000000000000000000000000000000000000000);
-        try community.registerMember(address(member2), socials) {
+        try community.registerMember(address(member2), member2.login(), socials) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "username already registered", "expected revert message incorrect");
@@ -117,7 +117,7 @@ contract testSuite is testSuite_template {
     function tryToUpdateSocialYouDoNotOwn() public {
         bytes32[] memory member2Socials = new bytes32[](1);
         member2Socials[0] = bytes32(0x0201000000000000000000000000000000000000000000000000000000000000);
-        community.registerMember(address(member2), member2Socials);
+        community.registerMember(address(member2), member2.login(), member2Socials);
         bytes32[] memory oldSocials = new bytes32[](3);
         oldSocials[0] = bytes32(0x0107000000000000000000000000000000000000000000000000000000000000);
         oldSocials[1] = bytes32(0x0108000000000000000000000000000000000000000000000000000000000000);
@@ -156,10 +156,10 @@ contract testSuite is testSuite_template {
     function checkThereIsAMaxLimitForRegistrations() public {
         // fill up registry
         for (uint i=communityStorage.getMemberCount(); i<community.MAX_MEMBERS(); i++) {
-            community.registerMember(address(uint160(i+2)), new bytes32[](0));
+            community.registerMember(address(uint160(i+2)), address(1), new bytes32[](0));
         }
         Assert.equal(communityStorage.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
-        try community.registerMember(address(uint160(community.MAX_MEMBERS()+2)), new bytes32[](0)) {
+        try community.registerMember(address(uint160(community.MAX_MEMBERS()+2)), address(1), new bytes32[](0)) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "membership full", "expected revert message incorrect");

@@ -16,7 +16,7 @@ import "AccessControlBits.sol";
 abstract contract BubbleCommunityStorage is EternalStorage, AccessControl {
 
   uint internal _memberCount;
-  mapping (address => bool) internal _members;
+  mapping (address => address) internal _members;
   mapping (bytes32 => address) internal _socials;
   address[] internal _nfts;
 
@@ -48,7 +48,7 @@ contract BubbleCommunity is BubbleCommunityStorage, IMemberRegistry, Proxy {
    * @dev returns `true` if the given address is a registered member of the community
    */
   function isMember(address member) external view override returns (bool) {
-    return _members[member];
+    return _members[member] != address(0);
   }
 
   /**
@@ -120,23 +120,23 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   /**
    * @dev register yourself as member of the community
    */
-  function registerAsMember(bytes32[] memory socials) external {
-    _registerMember(msg.sender, socials);
+  function registerAsMember(address login, bytes32[] memory socials) external {
+    _registerMember(msg.sender, login, socials);
   }
 
   /**
    * @dev registers the given user as a member of the community
    */
-  function registerMember(address member, bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    _registerMember(member, socials);
+  function registerMember(address member, address login, bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
+    _registerMember(member, login, socials);
   }
 
   /**
    * @dev update your social usernames
    */
   function updateSocials(bytes32[] memory oldSocials, bytes32[] memory newSocials) external {
-    _deregisterMember(msg.sender, oldSocials);
-    _registerMember(msg.sender, newSocials);
+    _deregisterMemberSocials(msg.sender, oldSocials);
+    _registerMemberSocials(msg.sender, newSocials);
   }
 
   /**
@@ -202,7 +202,14 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * @dev returns `true` if the given address is a registered member of the community
    */
   function isMember(address member) public view returns (bool) {
-    return _members[member];
+    return _members[member] != address(0);
+  }
+
+  /**
+   * @dev returns `true` if the given address is a registered member of the community
+   */
+  function isLoginFor(address member, address login) public view returns (bool) {
+    return _members[member] == login;
   }
 
   /**
@@ -240,11 +247,14 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
       hasRole(DEFAULT_ADMIN_ROLE, user) ? RWA_BITS 
       : hasRole(MEMBER_ADMIN_ROLE, user) ? READ_BIT
       : NO_PERMISSIONS;
+    // Member admins have rwa access to the admin directory
+    if (contentId == 0x8000000000000000000000000000000000000000000000000000000000000001 && hasRole(MEMBER_ADMIN_ROLE, user)) return DRWA_BITS;
     // Only content within address range is applicable to this bubble
     if (contentId < 2**160) {
       address contentAddr = address(uint160(contentId));
       if (isMember(contentAddr)) {
         if (isMember(user) && contentAddr == user) return RWA_BITS;  // Members have rwa access to their own file
+        if (isLoginFor(contentAddr, user)) return RWA_BITS;          // Member login addresses have rwa access to their own file
         if (hasRole(MEMBER_ADMIN_ROLE, user)) return READ_BIT;       // Admins have read access to members' files
       }
       else {
@@ -264,11 +274,11 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   /**
    * @dev registers the given user 
    */
-  function _registerMember(address member, bytes32[] memory socials) private {
-    require (!_members[member], 'already a member');
+  function _registerMember(address member, address login, bytes32[] memory socials) private {
+    require (_members[member] == address(0), 'already a member');
     require (_memberCount < MAX_MEMBERS, 'membership full');
     _registerMemberSocials(member, socials);
-    _members[member] = true;
+    _members[member] = login;
     _memberCount++;
   }
 
@@ -289,9 +299,9 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * @dev deregisters the given member and socials 
    */
   function _deregisterMember(address member, bytes32[] memory socials) private {
-    require (_members[member], 'not a member');
+    require (isMember(member), 'not a member');
     _deregisterMemberSocials(member, socials);
-    _members[member] = false;
+    _members[member] = address(0);
     if (_memberCount > 0) _memberCount--;  // It's possible 
   }
 

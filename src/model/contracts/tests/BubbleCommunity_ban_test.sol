@@ -16,7 +16,7 @@ contract testSuite is testSuite_template {
         member1Socials[2] = bytes32(0x0103000000000000000000000000000000000000000000000000000000000000);
         member1.registerAsMember(member1Socials);
         member2Socials[0] = bytes32(0x0201000000000000000000000000000000000000000000000000000000000000);
-        community.registerMember(address(member2), member2Socials);
+        community.registerMember(address(member2), member2.login(), member2Socials);
         Assert.equal(communityStorage.getMemberCount(), 2, 'member count should be two');
     }
 
@@ -43,7 +43,7 @@ contract testSuite is testSuite_template {
 
     function tryToReregisterAsAdmin() public {
         Assert.equal(communityStorage.isMember(address(member1)), false, 'member must be unregistered before test');
-        try community.registerMember(address(member1), member1Socials) {
+        try community.registerMember(address(member1), member1.login(), member1Socials) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "username banned", "expected revert message incorrect");

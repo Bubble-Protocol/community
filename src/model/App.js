@@ -10,21 +10,6 @@ import { polygon } from 'wagmi/chains';
 import { Community } from './Community';
 
 /**
- * @dev ID used to prefix all local storage entries
- */
-const APP_ID = 'bubble-community';
-
-/**
- * @dev Blockchain ID
- */
-const CHAIN = polygon;
-
-/**
- * @dev Remote bubble server that hosts all community bubbles
- */
-const BUBBLE_PROVIDER = "https://vault.bubbleprotocol.com/v2/polygon";
-
-/**
  * @dev Application state enum. @See the `state` property below.
  */
 const STATES = {
@@ -78,12 +63,13 @@ export class CommunityApp {
     this.wallet.on('account-changed', this._accountChanged.bind(this));
 
     // Construct the Community
-    this.community = new Community(DEFAULT_CONFIG.community, this.wallet);
+    this.community = new Community(DEFAULT_CONFIG, this.wallet);
 
     // Register UI state data
     stateManager.register('state', this.state);
     stateManager.register('session-state', 'closed');
     stateManager.register('isMember', false);
+    stateManager.register('member-data', {});
     stateManager.register('error');
 
     // Register UI functions
@@ -117,8 +103,8 @@ export class CommunityApp {
    */
   async register(details) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before registering");
-    return this.community.register(details)
-      .then(this._checkAccountIsMember.bind(this));
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.register(details);
   }
 
   /**
@@ -135,7 +121,7 @@ export class CommunityApp {
    * any existing session first, clearing the UI state.
    */
   _openSession(account) {
-    this.session = new Session(APP_ID, account, CHAIN, BUBBLE_PROVIDER, this.wallet);
+    this.session = new Session(DEFAULT_CONFIG, account, this.wallet, this.community);
     this._initialiseSession();
   }
 
@@ -145,27 +131,15 @@ export class CommunityApp {
    */
   async _initialiseSession() {
     this._setState(STATES.initialising);
-    stateManager.dispatch('isMember', false);
     return this.session.initialise()
       .then(() => {
-        this._checkAccountIsMember();
+        this._setState(STATES.initialised);
       })
       .catch(error => {
         console.warn(error);
         this._setState(STATES.failed);
         stateManager.dispatch('error', error)
       });
-  }
-
-  /**
-   * @dev Refreshes the `isMember` state for the current wallet account
-   */
-  async _checkAccountIsMember() {
-    return this.community.isMember(this.wallet.account)
-    .then(result => {
-      stateManager.dispatch('isMember', result);
-      this._setState(STATES.initialised);
-    });
   }
 
   /**
