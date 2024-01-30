@@ -107,7 +107,7 @@ export function Registration() {
 
 
 function formatError(error) {
-  if (error.code === 'username-registered') return "One of your usernames has already been registered";
+  if (error.code === 'username-registered') return "One of your usernames has already been registered to a different user";
   return error.details || error.message || error;
 }
 

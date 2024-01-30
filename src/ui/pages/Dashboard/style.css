@@ -1,36 +1,61 @@
-.hero-image-frame.community-page {
-  width: 500px;
-  height: 500px;
-}  
-
-.hero-image.community-page {
-  width: 70%;
-  max-width: 100%;
-  height: auto;
-  margin: 10% 22% 0 0;
-  right: 28%;
-}  
-
-.hero-section.community-page .bubble1 {
-  width: 25%;
-  left: auto;
-  right: 27%;
-  bottom: auto;
-  top: 10%;
+.dashboard {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
 }
 
-.hero-section.community-page .bubble2 {
-  width: 15%;
-  left: auto;
-  right: 18%;
-  bottom: auto;
-  top: 15%;
+.dashboard .title-section {
+  text-align: center;
 }
 
-.hero-section.community-page .bubble3 {
-  width: 10%;
-  left: auto;
-  right: 25%;
-  bottom: auto;
-  top: 28%;
+.dashboard .page-title {
+  color: #000;
+  font-family: Poppins;
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 48px;
+  text-align: center;
+}
+
+.dashboard .page-summary {
+  color: #686666;
+  font-family: Poppins;
+  font-size: 18px;
+  max-width: 800px;
+  align-self: center;
+  text-align: center;
+}
+
+.dashboard .section-link {
+  color: #555;
+  text-decoration: underline;
+  text-align: center;
+}
+
+.dashboard .section-link:hover {
+  cursor: pointer;
+}
+
+.dashboard .community-link {
+  color: rgb(0, 77, 221);
+  font-size: 20px;
+  text-decoration: underline;
+}
+
+.dashboard .delete-link {
+  color: rgb(221, 0, 0);
+  text-decoration: underline;
+  text-align: center;
+}
+
+.dashboard .warning {
+  font-weight: bold;
+  text-align: center;
+  max-width: 800px;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
