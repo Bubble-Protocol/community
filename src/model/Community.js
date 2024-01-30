@@ -34,6 +34,7 @@ export class Community {
     const account = this.wallet.account;
     console.log("registering user:", account, details);
     assert.isObject(details, 'details');
+    details = validateSocials(details);
     if (!details.twitter) return Promise.reject('missing twitter username');
     if (!details.discord) return Promise.reject('missing discord username');
     if (!details.telegram) return Promise.reject('missing telegram username');
@@ -42,13 +43,29 @@ export class Community {
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes]);
   }
 
+  async deregister(account, details, force=false) {
+    console.log("deregistering user:", account, details);
+    const walletAccount = this.wallet.account;
+    if (walletAccount.toLowerCase() !== account.toLowerCase()) return Promise.reject('wallet account does not match requested account');
+    assert.isObject(details, 'details');
+    details = validateSocials(details);
+    if (!force) {
+      if (!details.twitter) return Promise.reject('missing twitter username');
+      if (!details.discord) return Promise.reject('missing discord username');
+      if (!details.telegram) return Promise.reject('missing telegram username');
+    }
+    const socialHashes = constructSocials(details);
+    console.log("deregistering on blockchain:", account, socialHashes);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterAsMember', [socialHashes]);
+  }
+
   async updateSocials(oldDetails, newDetails) {
     const account = this.wallet.account;
-    console.log("updating member details:", account, oldDetails, newDetails);
     assert.isObject(oldDetails, 'oldDetails');
     assert.isObject(newDetails, 'newDetails');
     const oldSocialHashes = constructSocials(oldDetails);
     const newSocialHashes = constructSocials(newDetails);
+    if (newSocialHashes.length === 0) return Promise.resolve();
     console.log("updating on blockchain:", account, oldSocialHashes, newSocialHashes);
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'updateSocials', [oldSocialHashes, newSocialHashes]);
   }
@@ -61,10 +78,20 @@ export class Community {
 }
 
 
+function validateSocials(details) {
+  const results = {};
+  ['twitter', 'discord', 'telegram'].forEach(social => {
+    const value = details[social] ? details[social].trim() : undefined;
+    if (value && value.length > 0) results[social] = value;
+  })
+  return results;
+}
+
 function constructSocials(details) {
   const socialHashes = [];
-  if (details.twitter) socialHashes.push(keccak256('twitter:'+details.twitter));
-  if (details.discord) socialHashes.push(keccak256('discord:'+details.discord));
-  if (details.telegram) socialHashes.push(keccak256('telegram:'+details.telegram));
+  ['twitter', 'discord', 'telegram'].forEach(social => {
+    const value = details[social];
+    if (value && value.length > 0) socialHashes.push(keccak256(social+':'+value));
+  })
   return socialHashes;
 }

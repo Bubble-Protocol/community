@@ -30,7 +30,7 @@ export class MemberBubble {
   }
 
   async getData() {
-    console.trace('reading member data');
+    console.trace('reading member data from bubble');
     if (!this.memberData) {
       const json = await this.bubble.read(toFileId(this.dataFile), {silent: true});
       if (json) this.memberData = JSON.parse(json);
@@ -40,9 +40,16 @@ export class MemberBubble {
   }
   
   async setData(memberData) {
-    console.trace('writing member data', memberData);
+    console.trace('writing member data to bubble', memberData);
     await this.bubble.write(this.dataFile, JSON.stringify(memberData));
     this.memberData = memberData;
+  }
+
+  async deleteData() {
+    console.trace('deleting member data from bubble');
+    await this.bubble.delete(this.dataFile, {silent: true});
+    this.memberData = undefined;
+    console.log('member data deleted from bubble');
   }
 
 }

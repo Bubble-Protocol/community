@@ -132,6 +132,18 @@ export class Session {
   }
 
   /**
+   * @dev Deregister both on the blockchain and from the bubble
+   */
+  async deregister(force=false) {
+    if (this.state !== STATES.loggedIn) return Promise.reject("Log in before deregistering");
+    await this.memberBubble.deleteData();
+    await this.community.deregister(this.account, this.memberData, force);
+    this.isMember = false;
+    stateManager.dispatch('isMember', false);
+    this.logout();
+  }
+
+  /**
    * @dev Update member data both on the blockchain and in the bubble
    */
   async updateMemberData(newData) {
@@ -140,13 +152,14 @@ export class Session {
     if (!this.memberBubble.memberData) return Promise.reject('cannot access remote bubble at this time');
     let oldUsernames = {};
     let newUsernames = {};
-    const oldData = this.memberBubble.data;
+    const oldData = this.memberData;
     Object.keys(newData).forEach(key => {
       if (newData[key] !== oldData[key]) { 
         oldUsernames[key] = oldData[key];
         newUsernames[key] = newData[key];
       }
     })
+    console.log("updating member details:", oldUsernames, newUsernames);
     await this.community.updateSocials(oldUsernames, newUsernames);
     await this.memberBubble.setData({...oldData, ...newData});
     this.memberData = this.memberBubble.memberData;

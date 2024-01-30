@@ -78,7 +78,9 @@ export class CommunityApp {
       logout: this.logout.bind(this)
     });
     stateManager.register('community-functions', {
-      register: this.register.bind(this)
+      register: this.register.bind(this),
+      deregister: this.deregister.bind(this),
+      updateData: this.updateMemberData.bind(this)
     });
   }
 
@@ -105,6 +107,24 @@ export class CommunityApp {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before registering");
     if (!this.session) return Promise.reject("internal error: session is missing");
     return this.session.register(details);
+  }
+
+  /**
+   * @dev Deregister, from the blockchain and delete all data from the bubble
+   */
+  async deregister(details) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.deregister(details);
+  }
+
+  /**
+   * @dev Update member's data to both blockchain and bubble
+   */
+  async updateMemberData(details) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.updateMemberData(details);
   }
 
   /**
