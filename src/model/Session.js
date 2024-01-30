@@ -2,8 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+import { assert } from '@bubble-protocol/core';
 import { ecdsa } from '@bubble-protocol/crypto';
-import { ContentId, assert } from '@bubble-protocol/core';
+import { Key } from '@bubble-protocol/crypto/src/ecdsa';
+import { stateManager } from '../state-context';
+
+/**
+ * @dev Application state enum. @See the `state` property below.
+ */
+const STATES = {
+  open: 'open',
+  loggedIn: 'logged-in'
+}
 
 /**
  * A Session is an instance of the app with a locally saved state. The local device can support
@@ -17,6 +27,8 @@ import { ContentId, assert } from '@bubble-protocol/core';
  */
 export class Session {
 
+  state = STATES.open;
+
   /**
    * @dev The session private key, held in local storage and read on construction.
    */
@@ -25,14 +37,17 @@ export class Session {
   /**
    * @dev Constructs this Session from the locally saved state.
    */
-  constructor(id, chain, bubbleProvider, wallet) {
-    console.trace('Constructing session', id);
-    assert.isString(id, 'id');
+  constructor(appId, account, chain, bubbleProvider, wallet) {
+    console.trace('Constructing session');
+    assert.isString(appId, 'appId');
+    ecdsa.assert.isAddress(account, 'account');
     assert.isObject(chain, 'chain');
     assert.isNumber(chain.id, 'chain.id');
     assert.isString(bubbleProvider, 'bubbleProvider');
     assert.isObject(wallet, 'wallet');
-    this.id = id;
+    this.id = appId+'-'+chain.id+'-'+account.slice(2).toLowerCase();
+    console.trace('session id:', this.id);
+    this.account = account;
     this.chain = chain;
     this.bubbleProvider = bubbleProvider;
     this.wallet = wallet;
@@ -42,29 +57,34 @@ export class Session {
   /**
    * @dev Initialises the Session. The state of construction is determined by the properties read  
    * from the local saved state during construction.
-   * 
-   * i.e.: 
-   * 
-   *   this.key = null   ->  New, so construct application key
    */
   async initialise() {
 
     console.trace('Initialising session');
-
-    if (!this.key) {
-      // brand new session
-      console.trace('creating session key');
-      this.key = new ecdsa.Key();
-      this._saveState();
-    }
-
+    // Add custom code here
+    console.trace('Session initialised');
   }
 
   /**
-   * @dev Returns `true` if the session has not been fully initialised
+   * @dev Logs in by requesting a login message signature from the user's wallet.
+   * If `rememberMe` is set, the login will be saved indefinitely, or until `logout` is called.
    */
-  isNew() {
-    return this.key === undefined;
+  async login(rememberMe = false) {
+    if (this.state === STATES.loggedIn) return Promise.resolve();
+    this.wallet.login(this.account)
+    .then(signature => {
+      this.key = new Key(ecdsa.hash(signature));
+      if (rememberMe) this._saveState();
+      else this._calculateState();
+    })
+  }
+
+  /**
+   * @dev Logs out of the session, deleting any saved login details
+   */
+  logout() {
+    this.key = undefined;
+    this._saveState();
   }
 
   /**
@@ -73,18 +93,36 @@ export class Session {
   _loadState() {
     const stateJSON = window.localStorage.getItem(this.id);
     const stateData = stateJSON ? JSON.parse(stateJSON) : {};
-    console.trace('loaded state', stateData);
-    this.key = stateData.key;
+    console.trace('loaded session state', stateData);
+    try {
+      this.key = stateData.key ? new Key(stateData.key) : undefined;
+    }
+    catch(_){}
+    this._calculateState();
   }
 
   /**
    * @dev Saves the Session state to localStorage
    */
   _saveState() {
+    console.trace('saving session state');
     const stateData = {
       key: this.key.privateKey
     };
     window.localStorage.setItem(this.id, JSON.stringify(stateData));
+    this._calculateState();
+  }
+
+  /**
+   * @dev Determines the value of this.state
+   */
+  _calculateState() {
+    const oldState = this.state;
+    this.state = this.key ? STATES.loggedIn : STATES.open;
+    if (this.state !== oldState) {
+      console.trace("session state:", this.state);
+      stateManager.dispatch('session-state', this.state);
+    }
   }
 
 }

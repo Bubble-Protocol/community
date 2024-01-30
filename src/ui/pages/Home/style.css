@@ -34,3 +34,10 @@
   bottom: auto;
   top: 28%;
 }
+
+.button-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}

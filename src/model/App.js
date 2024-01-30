@@ -29,7 +29,6 @@ const BUBBLE_PROVIDER = "https://vault.bubbleprotocol.com/v2/polygon";
  */
 const STATES = {
   closed: 'closed',
-  new: 'new',
   initialising: 'initialising',
   initialised: 'initialised',
   failed: 'failed'
@@ -75,7 +74,7 @@ export class CommunityApp {
    */
   constructor() {
     // Construct the wallet and listen for changes to the selected account
-    this.wallet = new Wallet();
+    this.wallet = new Wallet("Bubble Protocol Community");
     this.wallet.on('account-changed', this._accountChanged.bind(this));
 
     // Construct the Community
@@ -83,15 +82,43 @@ export class CommunityApp {
 
     // Register UI state data
     stateManager.register('state', this.state);
+    stateManager.register('session-state', 'closed');
     stateManager.register('isMember', false);
     stateManager.register('error');
 
     // Register UI functions
-    stateManager.register('walletFunctions', {
+    stateManager.register('wallet-functions', {
+      login: this.login.bind(this),
+      logout: this.logout.bind(this)
     });
-    stateManager.register('communityFunctions', {
-      register: this._register.bind(this)
+    stateManager.register('community-functions', {
+      register: this.register.bind(this)
     });
+  }
+
+  /**
+   * @dev Logs in to the connected session. Rejects if wallet is not connected.
+   */
+  async login(...args) {
+    if (!this.session) return Promise.reject('Connect wallet before logging in');
+    return this.session.login(...args);
+  }
+
+  /**
+   * @dev Logs out of the connected session. Rejects if wallet is not connected.
+   */
+  async logout() {
+    if (!this.session) return Promise.reject('Connect wallet before logging out');
+    return this.session.logout();
+  }
+
+  /**
+   * @dev Register a new member
+   */
+  async register(details) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before registering");
+    return this.community.register(details)
+      .then(this._checkAccountIsMember.bind(this));
   }
 
   /**
@@ -108,7 +135,7 @@ export class CommunityApp {
    * any existing session first, clearing the UI state.
    */
   _openSession(account) {
-    this.session = new Session(APP_ID+'-'+account.slice(2).toLowerCase(), CHAIN, BUBBLE_PROVIDER, this.wallet);
+    this.session = new Session(APP_ID, account, CHAIN, BUBBLE_PROVIDER, this.wallet);
     this._initialiseSession();
   }
 
@@ -125,23 +152,15 @@ export class CommunityApp {
       })
       .catch(error => {
         console.warn(error);
-        this._setState(this.session.isNew() ? STATES.new : STATES.failed);
+        this._setState(STATES.failed);
         stateManager.dispatch('error', error)
       });
   }
 
   /**
-   * @dev Register a new member
-   */
-  _register(details) {
-    return this.community.register(details)
-      .then(this._checkAccountIsMember.bind(this));
-  }
-
-  /**
    * @dev Refreshes the `isMember` state for the current wallet account
    */
-  _checkAccountIsMember() {
+  async _checkAccountIsMember() {
     return this.community.isMember(this.wallet.account)
     .then(result => {
       stateManager.dispatch('isMember', result);
@@ -156,6 +175,7 @@ export class CommunityApp {
     if (this.session) {
       stateManager.dispatch('error');
       this.session = undefined;
+      stateManager.dispatch('session-state', 'closed');
     }
   }
 

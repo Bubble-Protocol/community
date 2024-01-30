@@ -23,7 +23,7 @@ const { chains, publicClient } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: 'Bubble Protocol TODO List Example',
+  appName: 'Bubble Protocol Community',
   projectId: WALLET_CONNECT_PROJECT_ID,
   chains
 });

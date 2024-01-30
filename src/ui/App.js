@@ -17,13 +17,16 @@ import { Dashboard } from "./pages/Dashboard";
 function App() {
 
   const appState = stateManager.useStateData('state')();
+  const sessionState = stateManager.useStateData('session-state')();
   const isMember = stateManager.useStateData('isMember')();
+
+  const loggedIn = appState === 'initialised' && sessionState === 'logged-in';
 
   return (
     <>
-      {appState !== 'initialised' && <Home />}
-      {appState === 'initialised' && !isMember && <Registration />}
-      {appState === 'initialised' && isMember && <Dashboard />}
+      {!loggedIn && <Home />}
+      {loggedIn && !isMember && <Registration />}
+      {loggedIn && isMember && <Dashboard />}
     </>
   );
 

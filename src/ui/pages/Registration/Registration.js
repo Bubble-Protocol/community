@@ -22,7 +22,7 @@ export function Registration() {
   // Model state data
   const appState = stateManager.useStateData('state')();
   const appError = stateManager.useStateData('error')();
-  const { register } = stateManager.useStateData('communityFunctions')();
+  const { register } = stateManager.useStateData('community-functions')();
   
   // Local state data
   const [registering, setRegistering] = useState(false);

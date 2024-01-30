@@ -2,11 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-import React from "react";
+import React, { useState } from "react";
 import './style.css';
 import communityImage from "../../images/community.png";
 import { stateManager } from "../../../state-context";
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { ConnectButton, useConnectModal } from '@rainbow-me/rainbowkit';
+import { CheckBox } from "../../components/CheckBox/CheckBox";
 
 
 /**
@@ -20,8 +21,13 @@ export function Home() {
 
   // Model state data
   const appState = stateManager.useStateData('state')();
+  const sessionState = stateManager.useStateData('session-state')();
   const appError = stateManager.useStateData('error')();
-  
+  const { login } = stateManager.useStateData('wallet-functions')();
+
+  // Local state data
+  const [rememberMe, setRememberMe] = useState(false);
+
   return (
     <>
         <div className="hero-section community-page">
@@ -50,6 +56,7 @@ export function Home() {
           {/* Failure Views */}
           {appState === 'new' && <p>Unexpected app state 'New'</p>}
           {appState === 'failed' && <p>Failed to initialise app</p>}
+          {appState === 'initialised' && sessionState === 'logged-in' && <p>Failed to initialise app</p>}
 
           {/* Connect View */}
           {appState === 'closed' &&
@@ -57,6 +64,20 @@ export function Home() {
               <p>Connect your wallet to join the Bubble Community...</p>
               <div className="button-row">
                 <div className="cta-button-hollow" onClick={openConnectModal}>Connect Wallet</div>
+              </div>
+            </>
+          }
+
+          {/* Login View */}
+          {appState === 'initialised' && sessionState !== 'logged-in' &&
+            <>
+              <ConnectButton />
+              <div className="button-row">
+                <div className="cta-button-solid" onClick={() => login(rememberMe)}>Login</div>
+                <div className="selector">
+                  <CheckBox selected={rememberMe} setSelected={setRememberMe} />
+                  <span>Remember Me</span>
+                </div>
               </div>
             </>
           }

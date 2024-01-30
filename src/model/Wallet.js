@@ -1,4 +1,4 @@
-import { getAccount, getNetwork, watchAccount, getWalletClient, getPublicClient, disconnect, switchNetwork } from 'wagmi/actions';
+import { getAccount, getNetwork, watchAccount, getWalletClient, getPublicClient, disconnect, switchNetwork, signMessage } from 'wagmi/actions';
 import { EventManager } from './utils/EventManager';
 import * as assert from './utils/assertions';
 import { AppError } from './utils/errors';
@@ -12,11 +12,13 @@ const WALLET_STATE = {
 export class Wallet {
 
   state = WALLET_STATE.disconnected;
+  appName;
   account;
   closeWatchers = [];
   listeners = new EventManager(['connected', 'disconnected', 'account-changed']);
 
-  constructor() {
+  constructor(appName) {
+    this.appName = appName;
     this.closeWatchers.push(watchAccount(this._handleAccountsChanged.bind(this)));
     this.on = this.listeners.on.bind(this.listeners);
     this.off = this.listeners.off.bind(this.listeners);
@@ -148,6 +150,14 @@ export class Wallet {
       else console.warn('switchChain error:', error);
       throw error;
     }
+  }
+
+  async login(account) {
+    const params = {
+      account: account || this.account,
+      message: "Login to "+this.appName
+    };
+    return signMessage(params);
   }
 
   _handleAccountsChanged(acc) {

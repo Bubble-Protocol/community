@@ -6,6 +6,12 @@
   color: #f00;
 }
 
+.selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .footer-container {
   box-sizing: border-box;
   width: 100%;
