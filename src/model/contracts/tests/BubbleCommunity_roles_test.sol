@@ -32,7 +32,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallDeregisterMemberWithoutMemberAdminRole() public {
-        try member1.deregisterMember(address(member1), new bytes32[](0)) {
+        try member1.deregisterMember(address(member1)) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertAccessControlUnauthorizedAccountError(reason, community.MEMBER_ADMIN_ROLE());
@@ -40,7 +40,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallUpdateSocialsWithoutMemberAdminRole() public {
-        try member1.updateSocials(address(member1), new bytes32[](0), new bytes32[](0)) {
+        try member1.updateSocials(address(member1), new bytes32[](0)) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertAccessControlUnauthorizedAccountError(reason, community.MEMBER_ADMIN_ROLE());
@@ -48,7 +48,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallBanMemberWithoutMemberAdminRole() public {
-        try member1.banMember(address(member1), new bytes32[](0)) {
+        try member1.banMember(address(member1)) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertAccessControlUnauthorizedAccountError(reason, community.MEMBER_ADMIN_ROLE());

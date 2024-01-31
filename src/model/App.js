@@ -115,28 +115,28 @@ export class CommunityApp {
   /**
    * @dev Deregister, from the blockchain and delete all data from the bubble
    */
-  async deregister(details, force) {
+  async deregister() {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
     if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.deregister(details, force);
+    return this.session.deregister();
   }
 
   /**
    * @dev Deregister, from the blockchain and delete all data from the bubble
    */
-  async deregisterMember(account, details, force) {
+  async deregisterMember(account) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
     if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.deregisterMember(account, details, force);
+    return this.session.deregisterMember(account);
   }
 
   /**
    * @dev Ban, from the blockchain and delete all data from the bubble
    */
-  async banMember(account, details, force) {
+  async banMember(account) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before banning");
     if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.banMember(account, details, force);
+    return this.session.banMember(account);
   }
 
   /**

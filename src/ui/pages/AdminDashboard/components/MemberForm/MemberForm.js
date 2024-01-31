@@ -8,6 +8,7 @@ import './style.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { TextBox } from "../../../../components/TextBox/TextBox";
 import { validateUsername } from "../../../../../common/utils/social-utils";
+import { assert } from "@bubble-protocol/crypto/src/ecdsa";
 
 
 /**
@@ -35,6 +36,7 @@ export function MemberForm({onBan, onDeregister, initialValues={}, hideButtons=f
     validateUsername(discord) &&
     validateUsername(telegram);
 
+  const accountValid = assert.isAddress(account);
   return (
     <div className="form">
       <div className="row">
@@ -57,8 +59,8 @@ export function MemberForm({onBan, onDeregister, initialValues={}, hideButtons=f
       {!hideButtons && 
         <>
           <div className="button-row center">
-            <div className={"cta-button-hollow" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? ban : null}>Ban</div>
-            <div className={"cta-button-hollow" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? deregister : null}>Deregister</div>
+            <div className={"cta-button-hollow" + (accountValid ? '' : " disabled")} onClick={accountValid ? ban : null}>Ban</div>
+            <div className={"cta-button-hollow" + (accountValid ? '' : " disabled")} onClick={accountValid ? deregister : null}>Deregister</div>
           </div>
         </>
       }

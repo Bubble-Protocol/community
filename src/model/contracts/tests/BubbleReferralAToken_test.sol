@@ -15,9 +15,13 @@ contract testSuite is testSuite_template {
         init();
         nft = new BubbleReferralAToken("my nft", "nft", "url", communityStorage);
         Assert.equal(nft.tokenCount(), 0, "unexpected token count");
+        bytes32[TEST_MAX_SOCIALS] memory socials;
         for (uint i=0; i<registeredAddresses.length; i++) {
             registeredAddresses[i] = address(uint160(i+2));
-            community.registerMember(registeredAddresses[i], address(1), new bytes32[](0));
+            socials[0] = bytes32(1000000+i);
+            socials[1] = bytes32(2000000+i);
+            socials[2] = bytes32(3000000+i);
+            community.registerMember(registeredAddresses[i], address(1), socials);
         }
     }
 
@@ -32,7 +36,11 @@ contract testSuite is testSuite_template {
 
     function canMint() public {
         additionalUser = address(uint160(registeredAddresses.length+2));
-        community.registerMember(additionalUser, address(1), new bytes32[](0));
+        bytes32[TEST_MAX_SOCIALS] memory socials;
+        socials[0] = bytes32(uint256(11000000));
+        socials[1] = bytes32(uint256(12000000));
+        socials[2] = bytes32(uint256(13000000));
+        community.registerMember(additionalUser, address(1), socials);
         nft.mint(additionalUser);
         Assert.equal(nft.tokenCount(), registeredAddresses.length+1, "unexpected token count");
     }

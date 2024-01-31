@@ -10,6 +10,10 @@ import "AccessControlledStorage.sol";
 import "AccessControlBits.sol";
 
 
+uint constant NUM_SOCIALS = 3; // Current fixed number of socials
+uint constant MAX_SOCIALS = 5; // Max limit, allowing for future expansion
+address constant BANNED_FLAG = address(1);
+
 /**
  * The registry data definition. Non-upgradeable eternal storage.
  */
@@ -17,6 +21,7 @@ abstract contract BubbleCommunityStorage is EternalStorage, AccessControl {
 
   uint internal _memberCount;
   mapping (address => address) internal _members;
+  mapping (address => bytes32[MAX_SOCIALS]) internal _memberSocials;
   mapping (bytes32 => address) internal _socials;
   address[] internal _nfts;
 
@@ -120,58 +125,51 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   /**
    * @dev register yourself as member of the community
    */
-  function registerAsMember(address login, bytes32[] memory socials) external {
+  function registerAsMember(address login, bytes32[MAX_SOCIALS] memory socials) external {
     _registerMember(msg.sender, login, socials);
   }
 
   /**
    * @dev registers the given user as a member of the community
    */
-  function registerMember(address member, address login, bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
+  function registerMember(address member, address login, bytes32[MAX_SOCIALS] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
     _registerMember(member, login, socials);
   }
 
   /**
    * @dev update your social usernames
    */
-  function updateSocials(bytes32[] memory oldSocials, bytes32[] memory newSocials) external {
-    _deregisterMemberSocials(msg.sender, oldSocials);
-    _registerMemberSocials(msg.sender, newSocials);
+  function updateSocials(bytes32[MAX_SOCIALS] memory socials) external {
+    _updateSocials(msg.sender, socials);
   }
 
   /**
    * @dev update social usernames for specific member
    */
-  function updateSocials(address member, bytes32[] memory oldSocials, bytes32[] memory newSocials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    _deregisterMemberSocials(member, oldSocials);
-    _registerMemberSocials(member, newSocials);
+  function updateSocials(address member, bytes32[MAX_SOCIALS] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
+    _updateSocials(member, socials);
   }
 
   /**
    * @dev deregister yourself from the community
    */
-  function deregisterAsMember(bytes32[] memory socials) external {
-    _deregisterMember(msg.sender, socials);
+  function deregisterAsMember() external {
+    _deregisterMember(msg.sender);
   }
 
   /**
    * @dev deregisters the given user from the community
    */
-  function deregisterMember(address member, bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    _deregisterMember(member, socials);
+  function deregisterMember(address member) external onlyRole(MEMBER_ADMIN_ROLE) {
+    _deregisterMember(member);
   }
 
   /**
    * @dev deregisters the given member and bans their socials.
    * Note, there is no point banning the member address since it is trivial to create a new one.
    */
-  function banMember(address member, bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    for (uint i=0; i<socials.length; i++) {
-      bytes32 usernameHash = socials[i];
-      require(_socials[usernameHash] == member, 'username not owned by member');
-      _socials[socials[i]] = address(1);
-    }
-    _deregisterMember(member, new bytes32[](0));
+  function banMember(address member) external onlyRole(MEMBER_ADMIN_ROLE) {
+    _banMember(member);
   }
 
   /**
@@ -180,14 +178,14 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * deregistered themselves use `updateSocials`.
    */
   function banSocials(bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    _registerMemberSocials(address(1), socials);
+    for (uint i=0; i<socials.length; i++) _banSocial(socials[i]);
   }
 
   /**
    * @dev unbans the given social usernames. Usernames must be banned.
    */
   function unbanSocials(bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
-    _deregisterMemberSocials(address(1), socials);
+    for (uint i=0; i<socials.length; i++) _unbanSocial(socials[i]);
   }
 
   /**
@@ -255,11 +253,15 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
       if (isMember(contentAddr)) {
         if (isMember(user) && contentAddr == user) return RWA_BITS;  // Members have rwa access to their own file
         if (isLoginFor(contentAddr, user)) return RWA_BITS;          // Member login addresses have rwa access to their own file
-        if (hasRole(MEMBER_ADMIN_ROLE, user)) return READ_BIT;       // Admins have read access to members' files
+        if (hasRole(MEMBER_ADMIN_ROLE, user)) return READ_BIT;       // Member admins have read access to members' files
+      }
+      else if (hasNFT(contentAddr)) {
+        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // NFT admins have rwa access to NFT directories
+        else return READ_BIT;                                        // Everyone has read access to registered NFT directories
       }
       else {
-        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // Admins have rwa access to NFT directories
-        if (hasNFT(contentAddr)) return READ_BIT;                    // Everyone has read access to NFT directories
+        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // NFT admins have rwa access to NFT directories
+        if (hasRole(MEMBER_ADMIN_ROLE, user)) return WRITE_BIT;      // Member admins have access to delete deregistered members' files
       }
     }
     return NO_PERMISSIONS;
@@ -274,46 +276,78 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   /**
    * @dev registers the given user 
    */
-  function _registerMember(address member, address login, bytes32[] memory socials) private {
+  function _registerMember(address member, address login, bytes32[MAX_SOCIALS] memory socials) private {
     require (_members[member] == address(0), 'already a member');
     require (_memberCount < MAX_MEMBERS, 'membership full');
-    _registerMemberSocials(member, socials);
+    for (uint i=0; i<NUM_SOCIALS; i++) {
+      bytes32 usernameHash = socials[i];
+      require (usernameHash != 0, 'username is null');
+      require (_socials[usernameHash] != address(1), 'username banned');
+      require (_socials[usernameHash] == address(0), 'username already registered');
+      _socials[usernameHash] = member;
+    }
+    _memberSocials[member] = socials;
     _members[member] = login;
     _memberCount++;
   }
 
   /**
-   * @dev registers the given usernames to the given member. Reverts if any username is
-   * already registered 
+   * @dev deregisters the given member and socials 
    */
-  function _registerMemberSocials(address member, bytes32[] memory socials) private {
-    for (uint i=0; i<socials.length; i++) {
-      bytes32 usernameHash = socials[i];
-      require (_socials[usernameHash] != address(1), 'username banned');
+  function _deregisterMember(address member) private {
+    require (isMember(member), 'not a member');
+    bytes32[MAX_SOCIALS] memory socials = _memberSocials[member];
+    for (uint i=0; i<MAX_SOCIALS; i++) delete _socials[socials[i]];
+    delete _memberSocials[member];
+    delete _members[member];
+    if (_memberCount > 0) _memberCount--;
+  }
+
+  /**
+   * @dev update socials for the given user 
+   */
+  function _updateSocials(address member, bytes32[MAX_SOCIALS] memory newSocials) private {
+    require (_members[member] != address(0), 'not a member');
+    bytes32[MAX_SOCIALS] memory oldSocials = _memberSocials[member];
+    for (uint i=0; i<MAX_SOCIALS; i++) delete _socials[oldSocials[i]];
+    for (uint i=0; i<NUM_SOCIALS; i++) {
+      bytes32 usernameHash = newSocials[i];
+      require (_socials[usernameHash] != BANNED_FLAG, 'username banned');
       require (_socials[usernameHash] == address(0), 'username already registered');
       _socials[usernameHash] = member;
     }
+    _memberSocials[member] = newSocials;
   }
 
   /**
-   * @dev deregisters the given member and socials 
+   * @dev bans all of the member's socials and deregisters the member
    */
-  function _deregisterMember(address member, bytes32[] memory socials) private {
+  function _banMember(address member) private {
     require (isMember(member), 'not a member');
-    _deregisterMemberSocials(member, socials);
-    _members[member] = address(0);
-    if (_memberCount > 0) _memberCount--;  // It's possible 
+    bytes32[MAX_SOCIALS] memory socials = _memberSocials[member];
+    for (uint i=0; i<MAX_SOCIALS; i++) {
+      bytes32 usernameHash = socials[i];
+      if (usernameHash != 0) _socials[usernameHash] = BANNED_FLAG;
+    }
+    delete _memberSocials[member];
+    delete _members[member];
+    if (_memberCount > 0) _memberCount--;
   }
 
   /**
-   * @dev deregisters the given socials. Reverts if any username is not owned by the member.
+   * @dev bans the given social provided it is not registered
    */
-  function _deregisterMemberSocials(address member, bytes32[] memory socials) private {
-    for (uint i=0; i<socials.length; i++) {
-      bytes32 usernameHash = socials[i];
-      require(_socials[usernameHash] == member, 'username not owned by member');
-      _socials[usernameHash] = address(0);
-    }
+  function _banSocial(bytes32 social) private {
+    require(_socials[social] == address(0), 'username is registered');
+    if (social != 0) _socials[social] = BANNED_FLAG;
+  }
+
+  /**
+   * @dev unbans the given social provided it is banned
+   */
+  function _unbanSocial(bytes32 social) private {
+    require(_socials[social] == BANNED_FLAG, 'username is not banned');
+    delete _socials[social];
   }
 
 }

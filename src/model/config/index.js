@@ -4,7 +4,7 @@ export const DEFAULT_CONFIG = {
   appId: 'bubble-community',
   contract: {
     chain: 137,
-    address: '0xdE2952317B2F653aB8c4C84F6F6a55246096096F',
+    address: '0x3108E692053bEC9988B8d257B843eE658A810804',
     abi: communityAbi.default
   },
   bubble: {

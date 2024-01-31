@@ -5,6 +5,8 @@ pragma solidity 0.8.24;
 import {BubbleCommunityImplementation} from "../BubbleCommunity.sol";
 import {BubbleReferralAToken} from "../nfts/BubbleReferralAToken.sol";
 
+uint constant TEST_MAX_SOCIALS = 5;
+
 contract CommunityUser {
 
     BubbleCommunityImplementation uut;
@@ -23,31 +25,31 @@ contract CommunityUser {
     }
     
     function registerAsMember(bytes32[] memory socials) external {
-        uut.registerAsMember(login, socials);
+        uut.registerAsMember(login, _dynToFixed(socials));
     }
 
     function registerMember(address member, bytes32[] memory socials) external {
-        uut.registerMember(member, login, socials);
+        uut.registerMember(member, login, _dynToFixed(socials));
     }
 
-    function updateSocials(bytes32[] memory oldSocials, bytes32[] memory newSocials) external {
-        uut.updateSocials(oldSocials, newSocials);
+    function updateSocials(bytes32[] memory newSocials) external {
+        uut.updateSocials(_dynToFixed(newSocials));
     }
 
-    function updateSocials(address member, bytes32[] memory oldSocials, bytes32[] memory newSocials) external {
-        uut.updateSocials(member, oldSocials, newSocials);
+    function updateSocials(address member, bytes32[] memory newSocials) external {
+        uut.updateSocials(member, _dynToFixed(newSocials));
     }
 
-    function deregisterAsMember(bytes32[] memory socials) external {
-        uut.deregisterAsMember(socials);
+    function deregisterAsMember() external {
+        uut.deregisterAsMember();
     }
 
-    function deregisterMember(address member, bytes32[] memory socials) external {
-        uut.deregisterMember(member, socials);
+    function deregisterMember(address member) external {
+        uut.deregisterMember(member);
     }
 
-    function banMember(address member, bytes32[] memory socials) external {
-        uut.banMember(member, socials);
+    function banMember(address member) external {
+        uut.banMember(member);
     }
 
     function banSocials(bytes32[] memory socials) external {
@@ -94,5 +96,12 @@ contract CommunityUser {
       nftContract.setApprovalForAll(operator, approved);
     }
 
+    function _dynToFixed(bytes32[] memory dyn) internal pure returns (bytes32[TEST_MAX_SOCIALS] memory fixedArray) {
+        require(dyn.length <= TEST_MAX_SOCIALS, "Input array too large");
+        for (uint i=0; i<dyn.length; i++) {
+            fixedArray[i] = dyn[i];
+        }
+        return fixedArray;
+    }
 
 }

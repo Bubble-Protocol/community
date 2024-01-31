@@ -135,10 +135,10 @@ export class Session {
   /**
    * @dev Deregister both on the blockchain and from the bubble
    */
-  async deregister(details, force) {
+  async deregister() {
     if (this.state !== STATES.loggedIn) return Promise.reject("Log in before deregistering");
     await this.memberBubble.deleteData();
-    await this.community.deregister(this.account, {...this.memberData, ...details}, force);
+    await this.community.deregister(this.account);
     this.isMember = false;
     stateManager.dispatch('isMember', false);
     this.logout();
@@ -147,8 +147,8 @@ export class Session {
   /**
    * @dev Admin function. Deregister user both on the blockchain and from the bubble
    */
-  async deregisterMember(account, details, force) {
-    await this.community.deregisterMember(account, details, force);
+  async deregisterMember(account) {
+    await this.community.deregisterMember(account);
     // await this.memberBubble.deleteData();
     // TODO delete member's data
   }
@@ -156,8 +156,8 @@ export class Session {
   /**
    * @dev Admin function. Ban user and delete their data from the bubble
    */
-  async banMember(account, details, force) {
-    await this.community.banMember(account, details, force);
+  async banMember(account) {
+    await this.community.banMember(account);
     // TODO delete member's data
   }
 
@@ -167,18 +167,9 @@ export class Session {
   async updateMemberData(newData) {
     if (!this.isMember) return Promise.reject('not a member');
     if (!this.memberBubble) return Promise.reject('internal error: member bubble has not yet been constructed');
-    let oldUsernames = {};
-    let newUsernames = {};
-    const oldData = this.memberData;
-    Object.keys(newData).forEach(key => {
-      if (newData[key] !== oldData[key]) { 
-        oldUsernames[key] = oldData[key];
-        newUsernames[key] = newData[key];
-      }
-    })
-    console.log("updating member details:", oldUsernames, newUsernames);
-    await this.community.updateSocials(oldUsernames, newUsernames);
-    await this.memberBubble.setData({...oldData, ...newData});
+    console.log("updating member details:", newData);
+    await this.community.updateSocials(newData);
+    await this.memberBubble.setData(newData);
     this.memberData = this.memberBubble.memberData;
     this._saveState();
     stateManager.dispatch('member-data', this.memberBubble.memberData);

@@ -16,8 +16,17 @@ contract testSuite is testSuite_template {
     function beforeAll() public {
         init();
         // Register members & NFTs
-        member1.registerAsMember(new bytes32[](0));
-        member2.registerAsMember(new bytes32[](0));
+        bytes32[] memory member1Socials = new bytes32[](3);
+        member1Socials[0] = bytes32(0x0101000000000000000000000000000000000000000000000000000000000000);
+        member1Socials[1] = bytes32(0x0102000000000000000000000000000000000000000000000000000000000000);
+        member1Socials[2] = bytes32(0x0103000000000000000000000000000000000000000000000000000000000000);
+        member1.registerAsMember(member1Socials);
+        bytes32[] memory member2Socials = new bytes32[](3);
+        member2Socials[0] = bytes32(0x0201000000000000000000000000000000000000000000000000000000000000);
+        member2Socials[1] = bytes32(0x0202000000000000000000000000000000000000000000000000000000000000);
+        member2Socials[2] = bytes32(0x0203000000000000000000000000000000000000000000000000000000000000);
+        member2.registerAsMember(member2Socials);
+        Assert.equal(communityStorage.getMemberCount(), 2, 'member count should be two');
         community.registerNFT(registeredNft);
         // Set roles
         community.grantRole(community.MEMBER_ADMIN_ROLE(), address(memberAdmin));
@@ -93,24 +102,30 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(address(nftAdmin), uint256(uint160(registeredNft))), DRWA_BITS, 'nft admin should be able to read and write to dir');
     }
 
-    function checkNftAdminCanWriteToNonRegisteredNftDir() public {
-        Assert.equal(community.getAccessPermissions(address(nftAdmin), uint256(uint160(nonRegisteredNft))), DRWA_BITS, 'nft admin should be able to read and write to dir');
-    }
-
-    function checkNonNftAdminsCannotAccessNonRegisteredNftDir() public {
-        Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'non-registered member should not be able to access dir');
-        Assert.equal(community.getAccessPermissions(address(member1), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member should not be able to access dir');
-        Assert.equal(community.getAccessPermissions(member1.login(), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member login should not be able to access dir');
-        Assert.equal(community.getAccessPermissions(address(memberAdmin), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member admin should not be able to access dir');
-        Assert.equal(community.getAccessPermissions(address(nonRegisteredNft), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'nft itself should not be able to access dir');
-    }
-
     function checkRegisteredNftDirIsPubliclyReadable() public {
         Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(registeredNft))), READ_BIT, 'non-registered member should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(member1), uint256(uint160(registeredNft))), READ_BIT, 'member should be able to read dir');
         Assert.equal(community.getAccessPermissions(member1.login(), uint256(uint160(registeredNft))), READ_BIT, 'member login should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(memberAdmin), uint256(uint160(registeredNft))), READ_BIT, 'member admin should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(registeredNft), uint256(uint160(registeredNft))), READ_BIT, 'nft itself should be able to read dir');
+    }
+
+
+    // Non-Registered Dirs
+
+    function checkNftAdminCanReadWriteToNonRegisteredNftDir() public {
+        Assert.equal(community.getAccessPermissions(address(nftAdmin), uint256(uint160(nonRegisteredNft))), DRWA_BITS, 'nft admin should be able to read and write to dir');
+    }
+
+    function checkMemberAdminCanWriteOnlyToNonRegisteredNftDir() public {
+        Assert.equal(community.getAccessPermissions(address(memberAdmin), uint256(uint160(nonRegisteredNft))), WRITE_BIT, 'member admin should be able to write-only to dir');
+    }
+
+    function checkNonAdminsCannotAccessNonRegisteredNftDir() public {
+        Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'non-registered member should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(address(member1), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(member1.login(), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member login should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(address(nonRegisteredNft), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'nft itself should not be able to access dir');
     }
 
 
@@ -140,5 +155,6 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(address(this), nonAddressableFile), NO_PERMISSIONS, 'owner should not be able to access dir');
     }
 
+    //TODO check can delete deregistered member's file
 
 }
