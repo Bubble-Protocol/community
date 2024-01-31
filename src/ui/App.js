@@ -8,6 +8,7 @@ import { Registration } from "./pages/Registration";
 import { stateManager } from "../state-context";
 import { Home } from "./pages/Home";
 import { Dashboard } from "./pages/Dashboard";
+import { AdminDashboard } from "./pages/AdminDashboard";
 
 
 /**
@@ -19,14 +20,16 @@ function App() {
   const appState = stateManager.useStateData('state')();
   const sessionState = stateManager.useStateData('session-state')();
   const isMember = stateManager.useStateData('isMember')();
+  const isMemberAdmin = stateManager.useStateData('isMemberAdmin')();
 
   const loggedIn = appState === 'initialised' && sessionState === 'logged-in';
 
   return (
     <>
       {!loggedIn && <Home />}
-      {loggedIn && !isMember && <Registration />}
-      {loggedIn && isMember && <Dashboard />}
+      {loggedIn && !isMember && !isMemberAdmin && <Registration />}
+      {loggedIn && isMember && !isMemberAdmin && <Dashboard />}
+      {loggedIn && isMemberAdmin && <AdminDashboard />}
     </>
   );
 

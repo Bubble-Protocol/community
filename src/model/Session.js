@@ -86,6 +86,7 @@ export class Session {
   async initialise() {
     console.trace('Initialising session');
     stateManager.dispatch('isMember', false);
+    this._checkAccountIsMemberAdmin();
     await this._checkAccountIsMember();
     await this._refreshBubbles();
     console.trace('Session initialised');
@@ -144,6 +145,23 @@ export class Session {
   }
 
   /**
+   * @dev Admin function. Deregister user both on the blockchain and from the bubble
+   */
+  async deregisterMember(account, details, force) {
+    await this.community.deregisterMember(account, details, force);
+    // await this.memberBubble.deleteData();
+    // TODO delete member's data
+  }
+
+  /**
+   * @dev Admin function. Ban user and delete their data from the bubble
+   */
+  async banMember(account, details, force) {
+    await this.community.banMember(account, details, force);
+    // TODO delete member's data
+  }
+
+  /**
    * @dev Update member data both on the blockchain and in the bubble
    */
   async updateMemberData(newData) {
@@ -172,6 +190,15 @@ export class Session {
   async _checkAccountIsMember() {
     this.isMember = await this.community.isMember(this.wallet.account)
     stateManager.dispatch('isMember', this.isMember);
+  }
+
+  /**
+   * @dev Refreshes the `isMember` state for the current wallet account
+   */
+  async _checkAccountIsMemberAdmin() {
+    this.isMemberAdmin = await this.community.isMemberAdmin(this.wallet.account)
+    console.debug('isMemberAdmin', this.isMemberAdmin);
+    stateManager.dispatch('isMemberAdmin', this.isMemberAdmin);
   }
 
   /**

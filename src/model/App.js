@@ -69,6 +69,7 @@ export class CommunityApp {
     stateManager.register('state', this.state);
     stateManager.register('session-state', 'closed');
     stateManager.register('isMember', false);
+    stateManager.register('isMemberAdmin', false);
     stateManager.register('member-data', {});
     stateManager.register('error');
 
@@ -80,6 +81,8 @@ export class CommunityApp {
     stateManager.register('community-functions', {
       register: this.register.bind(this),
       deregister: this.deregister.bind(this),
+      deregisterMember: this.deregisterMember.bind(this),
+      banMember: this.banMember.bind(this),
       updateData: this.updateMemberData.bind(this)
     });
   }
@@ -116,6 +119,24 @@ export class CommunityApp {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
     if (!this.session) return Promise.reject("internal error: session is missing");
     return this.session.deregister(details, force);
+  }
+
+  /**
+   * @dev Deregister, from the blockchain and delete all data from the bubble
+   */
+  async deregisterMember(account, details, force) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.deregisterMember(account, details, force);
+  }
+
+  /**
+   * @dev Ban, from the blockchain and delete all data from the bubble
+   */
+  async banMember(account, details, force) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before banning");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.banMember(account, details, force);
   }
 
   /**

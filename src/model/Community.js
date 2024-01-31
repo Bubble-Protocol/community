@@ -2,6 +2,7 @@ import { assert } from "@bubble-protocol/client";
 import { keccak256 } from "viem";
 import { stateManager } from "../state-context";
 
+const MEMBER_ADMIN_ROLE = '0x5160d718b3cafa04f8d51bbd7b6f2828ba2c83e2c57f3ca11850ce45d05be042';
 export class Community {
 
   wallet;
@@ -30,6 +31,10 @@ export class Community {
     return this.wallet.call(this.contract.address, this.contract.abi, 'isMember', [account]);
   }
 
+  async isMemberAdmin(account) {
+    return this.wallet.call(this.contract.address, this.contract.abi, 'hasRole', [MEMBER_ADMIN_ROLE, account]);
+  }
+
   async register(loginAddress, details) {
     const account = this.wallet.account;
     console.log("registering user:", account, details);
@@ -43,10 +48,18 @@ export class Community {
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes]);
   }
 
-  async deregister(account, details, force=false) {
-    console.log("deregistering user:", account, details);
+  async deregister(account, details, force) {
     const walletAccount = this.wallet.account;
     if (walletAccount.toLowerCase() !== account.toLowerCase()) return Promise.reject('wallet account does not match requested account');
+    return this._deregister('deregisterAsMember', account, details, force);
+  }
+
+  async deregisterMember(account, details, force) {
+    return this._deregister('deregisterMember', account, details, force);
+  }
+
+  async _deregister(method, account, details, force=false) {
+    console.log("deregistering user:", account, details);
     assert.isObject(details, 'details');
     details = validateSocials(details);
     if (!force) {
@@ -56,7 +69,22 @@ export class Community {
     }
     const socialHashes = constructSocials(details);
     console.log("deregistering on blockchain:", account, socialHashes);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterAsMember', [socialHashes]);
+    if (method === 'deregisterMember') return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, method, [account, socialHashes]);
+    else return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, method, [socialHashes]);
+  }
+
+  async banMember(account, details, force=false) {
+    console.log("banning user:", account, details);
+    assert.isObject(details, 'details');
+    details = validateSocials(details);
+    if (!force) {
+      if (!details.twitter) return Promise.reject('missing twitter username');
+      if (!details.discord) return Promise.reject('missing discord username');
+      if (!details.telegram) return Promise.reject('missing telegram username');
+    }
+    const socialHashes = constructSocials(details);
+    console.log("banning on blockchain:", account, socialHashes);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'banMember', [account, socialHashes]);
   }
 
   async updateSocials(oldDetails, newDetails) {

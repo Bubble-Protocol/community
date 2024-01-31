@@ -1,0 +1,43 @@
+.admin-dashboard {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  align-self: stretch;
+  align-items: center;
+}
+
+.admin-dashboard .title-section {
+  text-align: center;
+}
+
+.admin-dashboard .page-title {
+  color: #000;
+  font-family: Poppins;
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 48px;
+  text-align: center;
+}
+
+.admin-dashboard .warning {
+  font-weight: bold;
+  text-align: center;
+  max-width: 800px;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-dashboard .section-link {
+  color: #555;
+  text-decoration: underline;
+  text-align: center;
+}
+
+.admin-dashboard .section-link:hover {
+  cursor: pointer;
+}
+
