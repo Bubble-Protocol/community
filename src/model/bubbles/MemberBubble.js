@@ -86,16 +86,17 @@ class MemberEncryptionPolicy extends encryptionPolicies.AESGCMEncryptionPolicy {
       data = JSON.parse(json);
     }
     catch(error) {
-      console.warn('MemberEncryptionPolicy.decrypt: data not valid json', error);
+      console.warn('MemberEncryptionPolicy.decrypt: data not valid json', error, data);
       return Promise.resolve(Buffer.from(''));
     }
     if (!data || !data.data) {
-      console.warn('MemberEncryptionPolicy.decrypt: data is invalid');
+      console.warn('MemberEncryptionPolicy.decrypt: data is invalid', data);
       return Promise.resolve(Buffer.from(''));
     }
     return super.decrypt(data.data)
     .catch(error => {
-      console.warn('MemberEncryptionPolicy.decrypt: data encryption is invalid', error);
+      console.warn('MemberEncryptionPolicy.decrypt: data encryption is invalid', error, data);
+      return Promise.resolve(Buffer.from(''));
     })
   }
 
