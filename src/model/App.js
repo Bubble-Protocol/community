@@ -112,10 +112,10 @@ export class CommunityApp {
   /**
    * @dev Deregister, from the blockchain and delete all data from the bubble
    */
-  async deregister(details) {
+  async deregister(details, force) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
     if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.deregister(details);
+    return this.session.deregister(details, force);
   }
 
   /**

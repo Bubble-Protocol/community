@@ -97,7 +97,7 @@ export class Session {
    */
   async login(rememberMe = false) {
     if (this.state === STATES.loggedIn) return Promise.resolve();
-    this.wallet.login(this.account)
+    return this.wallet.login(this.account)
     .then(signature => {
       this.loginKey = new Key(ecdsa.hash(signature));
       if (rememberMe) this._saveState();
@@ -134,10 +134,10 @@ export class Session {
   /**
    * @dev Deregister both on the blockchain and from the bubble
    */
-  async deregister(force=false) {
+  async deregister(details, force) {
     if (this.state !== STATES.loggedIn) return Promise.reject("Log in before deregistering");
     await this.memberBubble.deleteData();
-    await this.community.deregister(this.account, this.memberData, force);
+    await this.community.deregister(this.account, {...this.memberData, ...details}, force);
     this.isMember = false;
     stateManager.dispatch('isMember', false);
     this.logout();
@@ -149,7 +149,6 @@ export class Session {
   async updateMemberData(newData) {
     if (!this.isMember) return Promise.reject('not a member');
     if (!this.memberBubble) return Promise.reject('internal error: member bubble has not yet been constructed');
-    if (!this.memberBubble.memberData) return Promise.reject('cannot access remote bubble at this time');
     let oldUsernames = {};
     let newUsernames = {};
     const oldData = this.memberData;
