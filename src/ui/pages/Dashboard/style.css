@@ -44,10 +44,18 @@
   text-decoration: underline;
 }
 
+.dashboard .community-link:hover {
+  cursor: pointer;
+}
+
 .dashboard .delete-link {
   color: rgb(221, 0, 0);
   text-decoration: underline;
   text-align: center;
+}
+
+.dashboard .delete-link:hover {
+  cursor: pointer;
 }
 
 .dashboard .warning {

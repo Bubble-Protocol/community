@@ -70,7 +70,7 @@ export function Dashboard() {
             Your data will never be shared with anyone.
           </p>
 
-          <SocialsForm buttonText="Update" onRegister={updateUser} registering={registering} initialValues={memberData} connectButton={false} />
+          <SocialsForm buttonText="Update" onRegister={updateUser} registering={registering} initialValues={memberData} connectButton={false} registerButton={!confirmDelete && !deleting} />
 
           {confirmDelete && !deleting &&
 
@@ -81,6 +81,7 @@ export function Dashboard() {
                 Any existing community NFTs you have earned until now are safe but you won't be able to claim any future NFTs.
               </p>
               <div className="delete-link" onClick={deleteAccount}>YES, DELETE MY ACCOUNT</div>
+              <div className="section-link" onClick={() => setConfirmDelete(false)}>Cancel</div>
             </div>
           }
           {!confirmDelete && !deleting && <div className="delete-link" onClick={() => setConfirmDelete(true)}>Delete Your Account</div>}
@@ -94,7 +95,7 @@ export function Dashboard() {
       }
 
       <div className="page-width-section">
-      <div className="section-link" onClick={logout}>Logout</div>
+      {!confirmDelete && !deleting && !registering && <div className="section-link" onClick={logout}>Logout</div>}
       </div>
 
     </div>
