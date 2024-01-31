@@ -56,7 +56,7 @@ export function Home() {
           {/* Failure Views */}
           {appState === 'new' && <p>Unexpected app state 'New'</p>}
           {appState === 'failed' && <p>Failed to initialise app</p>}
-          {appState === 'initialised' && sessionState === 'logged-in' && <p>Failed to initialise app</p>}
+          {appState === 'initialised' && sessionState === 'logged-in' && <p>Unexpected initialised STATES</p>}
 
           {/* Connect View */}
           {appState === 'closed' &&
