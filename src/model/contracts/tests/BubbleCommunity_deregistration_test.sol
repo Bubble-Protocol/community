@@ -62,4 +62,14 @@ contract testSuite is testSuite_template {
         }
     }
 
+    function checkADeregisteredMemberCanReregister() public {
+        uint prevMemberCount = community.getMemberCount();
+        member1.registerAsMember(member1Socials);
+        Assert.equal(community.getMemberCount(), prevMemberCount+1, 'member count should have increased by one');
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should be true after deregistering');
+        Assert.equal(community.getUserAddress(member1Socials[0]), address(member1), 'social 0 owner should be set after registering');
+        Assert.equal(community.getUserAddress(member1Socials[1]), address(member1), 'social 1 owner should be set after registering');
+        Assert.equal(community.getUserAddress(member1Socials[2]), address(member1), 'social 2 owner should be set after registering');
+    }
+
 }
