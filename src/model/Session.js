@@ -40,6 +40,7 @@ export class Session {
    * @dev True if this account is a member of the community
    */
   isMember = false;
+  isBanned = false;
   isMemberAdmin = false;
   isNftAdmin = false;
 
@@ -88,6 +89,7 @@ export class Session {
     stateManager.dispatch('isMember', false);
     this._checkAccountIsMemberAdmin();
     await this._checkAccountIsMember();
+    if (!this.isMember) this._checkAccountIsBanned();
     await this._refreshBubbles();
     console.trace('Session initialised');
   }
@@ -181,6 +183,14 @@ export class Session {
   async _checkAccountIsMember() {
     this.isMember = await this.community.isMember(this.wallet.account)
     stateManager.dispatch('isMember', this.isMember);
+  }
+
+  /**
+   * @dev Refreshes the `isBanned` state for the current wallet account
+   */
+  async _checkAccountIsBanned() {
+    this.isBanned = await this.community.isBanned(this.wallet.account)
+    stateManager.dispatch('isBanned', this.isBanned);
   }
 
   /**

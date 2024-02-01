@@ -22,6 +22,7 @@ export function Registration() {
   // Model state data
   const appState = stateManager.useStateData('state')();
   const appError = stateManager.useStateData('error')();
+  const isBanned = stateManager.useStateData('isBanned')();
   const { register } = stateManager.useStateData('community-functions')();
   
   // Local state data
@@ -74,8 +75,18 @@ export function Registration() {
             </>
           }
 
+          {/* Banned View */}
+          {appState === 'initialised' && isBanned &&
+            <>
+              <div className="notice">You have been banned from this community.</div>
+              <p>
+                If you think you have been banned in error, please contact the team on <a className="bold" href="https://discord.gg/sSnvK5C">discord</a> or <a className="bold" href="https://twitter.com/BubbleProtocol">twitter</a>.
+              </p>
+            </>
+          }
+
           {/* Registration View */}
-          {appState === 'initialised' &&
+          {appState === 'initialised' && !isBanned &&
             <>
               <div className="section-paragraphs">
                 <p>

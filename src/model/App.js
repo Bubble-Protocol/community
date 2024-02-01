@@ -69,6 +69,7 @@ export class CommunityApp {
     stateManager.register('state', this.state);
     stateManager.register('session-state', 'closed');
     stateManager.register('isMember', false);
+    stateManager.register('isBanned', false);
     stateManager.register('isMemberAdmin', false);
     stateManager.register('member-data', {});
     stateManager.register('error');

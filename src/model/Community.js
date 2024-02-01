@@ -32,6 +32,10 @@ export class Community {
     return this.wallet.call(this.contract.address, this.contract.abi, 'isMember', [account]);
   }
 
+  async isBanned(account) {
+    return this.wallet.call(this.contract.address, this.contract.abi, 'isBanned', [account]);
+  }
+
   async isMemberAdmin(account) {
     return this.wallet.call(this.contract.address, this.contract.abi, 'hasRole', [MEMBER_ADMIN_ROLE, account]);
   }

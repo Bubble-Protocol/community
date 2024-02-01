@@ -6,6 +6,15 @@
   color: #f00;
 }
 
+.notice {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.bold {
+  font-weight: 700;
+}
+
 .selector {
   display: flex;
   align-items: center;
