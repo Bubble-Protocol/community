@@ -63,6 +63,14 @@ contract testSuite is testSuite_template {
         }
     }
 
+    function tryToCallUnbanMembersWithoutMemberAdminRole() public {
+        try member1.unbanMember(address(member1)) {
+            Assert.ok(false, "method should revert");
+        } catch (bytes memory reason) {
+            assertAccessControlUnauthorizedAccountError(reason, community.MEMBER_ADMIN_ROLE());
+        }
+    }
+
     function tryToCallUnbanSocialsWithoutMemberAdminRole() public {
         try member1.unbanSocials(new bytes32[](0)) {
             Assert.ok(false, "method should revert");

@@ -7,7 +7,9 @@ import "../AccessControlBits.sol";
 
 contract testSuite is testSuite_template {
 
-    address nonMember = address(1);
+    address nonMember = address(1000);
+    address bannedMember = address(1001);
+    address bannedMemberLogin = address(1002);
     address registeredNft = address(100);
     address nonRegisteredNft = address(101);
     uint256 nonAddressableFile = 2**160;
@@ -26,7 +28,14 @@ contract testSuite is testSuite_template {
         member2Socials[1] = bytes32(0x0202000000000000000000000000000000000000000000000000000000000000);
         member2Socials[2] = bytes32(0x0203000000000000000000000000000000000000000000000000000000000000);
         member2.registerAsMember(member2Socials);
-        Assert.equal(communityStorage.getMemberCount(), 2, 'member count should be two');
+        bytes32[5] memory bannedMemberSocials;
+        bannedMemberSocials[0] = bytes32(0x0301000000000000000000000000000000000000000000000000000000000000);
+        bannedMemberSocials[1] = bytes32(0x0302000000000000000000000000000000000000000000000000000000000000);
+        bannedMemberSocials[2] = bytes32(0x0303000000000000000000000000000000000000000000000000000000000000);
+        community.registerMember(bannedMember, bannedMemberLogin, bannedMemberSocials);
+        community.banMember(bannedMember);
+        Assert.equal(community.isBanned(bannedMember), true, 'bannedMember should be banned');
+        Assert.equal(community.getMemberCount(), 2, 'member count should be two');
         community.registerNFT(registeredNft);
         // Set roles
         community.grantRole(community.MEMBER_ADMIN_ROLE(), address(memberAdmin));
@@ -52,6 +61,14 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(nonMember, 0), NO_PERMISSIONS, 'only owner and member admins can read the root');
     }
 
+    function checkBannedMemberCannotAccessRoot() public {
+        Assert.equal(community.getAccessPermissions(bannedMember, 0), NO_PERMISSIONS, 'only owner and member admins can read the root');
+    }
+
+    function checkBannedMemberLoginCannotAccessRoot() public {
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, 0), NO_PERMISSIONS, 'only owner and member admins can read the root');
+    }
+
     function checkNftAdminCannotAccessRoot() public {
         Assert.equal(community.getAccessPermissions(address(nftAdmin), 0), NO_PERMISSIONS, 'only owner and member admins can read the root');
     }
@@ -73,6 +90,22 @@ contract testSuite is testSuite_template {
 
     function checkNonMemberCannotAccessAMembersFile() public {
         Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(address(member1)))), NO_PERMISSIONS, 'non-member should not have access to their file');
+    }
+
+    function checkBannedMemberCannotAccessAMembersFile() public {
+        Assert.equal(community.getAccessPermissions(bannedMember, uint256(uint160(address(member1)))), NO_PERMISSIONS, 'banned-member should not have access to their file');
+    }
+
+    function checkBannedMemberLoginCannotAccessAMembersFile() public {
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, uint256(uint160(address(member1)))), NO_PERMISSIONS, 'banned-member should not have access to their file');
+    }
+
+    function checkBannedMemberCannotAccessTheirOwnFile() public {
+        Assert.equal(community.getAccessPermissions(bannedMember, uint256(uint160(address(bannedMember)))), NO_PERMISSIONS, 'banned-member should not have access to their own file');
+    }
+
+    function checkBannedMemberLoginCannotAccessTheirOwnFile() public {
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, uint256(uint160(address(bannedMember)))), NO_PERMISSIONS, 'banned-member should not have access to their own file');
     }
 
     function checkMemberCannotAccessAnotherMembersFile() public {
@@ -106,6 +139,8 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(registeredNft))), READ_BIT, 'non-registered member should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(member1), uint256(uint160(registeredNft))), READ_BIT, 'member should be able to read dir');
         Assert.equal(community.getAccessPermissions(member1.login(), uint256(uint160(registeredNft))), READ_BIT, 'member login should be able to read dir');
+        Assert.equal(community.getAccessPermissions(bannedMember, uint256(uint160(registeredNft))), READ_BIT, 'banned member should be able to read dir');
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, uint256(uint160(registeredNft))), READ_BIT, 'banned member login should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(memberAdmin), uint256(uint160(registeredNft))), READ_BIT, 'member admin should be able to read dir');
         Assert.equal(community.getAccessPermissions(address(registeredNft), uint256(uint160(registeredNft))), READ_BIT, 'nft itself should be able to read dir');
     }
@@ -125,6 +160,8 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(nonMember, uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'non-registered member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(member1), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(member1.login(), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'member login should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMember, uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'banned member should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'banned member login should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(nonRegisteredNft), uint256(uint160(nonRegisteredNft))), NO_PERMISSIONS, 'nft itself should not be able to access dir');
     }
 
@@ -139,6 +176,8 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(nonMember, adminDir), NO_PERMISSIONS, 'non-registered member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(member1), adminDir), NO_PERMISSIONS, 'member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(member1.login(), adminDir), NO_PERMISSIONS, 'member login should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMember, adminDir), NO_PERMISSIONS, 'banned member should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, adminDir), NO_PERMISSIONS, 'banned member login should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(nftAdmin), adminDir), NO_PERMISSIONS, 'nft admin should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(nonMember), adminDir), NO_PERMISSIONS, 'non-member should not be able to access dir');
     }
@@ -150,6 +189,8 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getAccessPermissions(nonMember, nonAddressableFile), NO_PERMISSIONS, 'non-registered member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(member1), nonAddressableFile), NO_PERMISSIONS, 'member should not be able to access dir');
         Assert.equal(community.getAccessPermissions(member1.login(), nonAddressableFile), NO_PERMISSIONS, 'member login should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMember, nonAddressableFile), NO_PERMISSIONS, 'banned member should not be able to access dir');
+        Assert.equal(community.getAccessPermissions(bannedMemberLogin, nonAddressableFile), NO_PERMISSIONS, 'banned member login should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(memberAdmin), nonAddressableFile), NO_PERMISSIONS, 'member admin should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(nftAdmin), nonAddressableFile), NO_PERMISSIONS, 'nft admin should not be able to access dir');
         Assert.equal(community.getAccessPermissions(address(this), nonAddressableFile), NO_PERMISSIONS, 'owner should not be able to access dir');

@@ -56,6 +56,10 @@ contract CommunityUser {
         uut.banSocials(socials);
     }
 
+    function unbanMember(address member) external {
+        uut.unbanMember(member);
+    }
+
     function unbanSocials(bytes32[] memory socials) external {
         uut.unbanSocials(socials);
     }

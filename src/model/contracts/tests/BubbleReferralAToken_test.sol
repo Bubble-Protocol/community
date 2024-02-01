@@ -13,7 +13,7 @@ contract testSuite is testSuite_template {
 
     function beforeAll() public {
         init();
-        nft = new BubbleReferralAToken("my nft", "nft", "url", communityStorage);
+        nft = new BubbleReferralAToken("my nft", "nft", "url", community);
         Assert.equal(nft.tokenCount(), 0, "unexpected token count");
         bytes32[TEST_MAX_SOCIALS] memory socials;
         for (uint i=0; i<registeredAddresses.length; i++) {

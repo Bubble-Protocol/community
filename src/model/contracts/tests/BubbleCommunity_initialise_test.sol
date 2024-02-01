@@ -81,8 +81,8 @@ contract testSuite {
     }
 
     function checkInitialisedState() public {
-        Assert.equal(communityStorage.getMemberCount(), 0, 'member count should be zero');
-        Assert.equal(communityStorage.getNFTs().length, 0, 'nft list should be empty');
+        Assert.equal(community.getMemberCount(), 0, 'member count should be zero');
+        Assert.equal(community.getNFTs().length, 0, 'nft list should be empty');
     }
 
 }

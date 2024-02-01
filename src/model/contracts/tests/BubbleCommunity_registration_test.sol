@@ -15,17 +15,17 @@ contract testSuite is testSuite_template {
         member1Socials[0] = bytes32(0x0101000000000000000000000000000000000000000000000000000000000000);
         member1Socials[1] = bytes32(0x0102000000000000000000000000000000000000000000000000000000000000);
         member1Socials[2] = bytes32(0x0103000000000000000000000000000000000000000000000000000000000000);
-        Assert.equal(communityStorage.isMember(address(member1)), false, 'isMember should be false before registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[0]), address(0), 'social 0 owner should be zero before registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[1]), address(0), 'social 1 owner should be zero before registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[2]), address(0), 'social 2 owner should be zero before registering');
-        uint prevMemberCount = communityStorage.getMemberCount();
+        Assert.equal(community.isMember(address(member1)), false, 'isMember should be false before registering');
+        Assert.equal(community.getUserAddress(member1Socials[0]), address(0), 'social 0 owner should be zero before registering');
+        Assert.equal(community.getUserAddress(member1Socials[1]), address(0), 'social 1 owner should be zero before registering');
+        Assert.equal(community.getUserAddress(member1Socials[2]), address(0), 'social 2 owner should be zero before registering');
+        uint prevMemberCount = community.getMemberCount();
         member1.registerAsMember(member1Socials);
-        Assert.equal(communityStorage.getMemberCount(), prevMemberCount+1, 'member count should have increased by one');
-        Assert.equal(communityStorage.isMember(address(member1)), true, 'isMember should be true after registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[0]), address(member1), 'social 0 owner should be member after registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[1]), address(member1), 'social 1 owner should be member after registering');
-        Assert.equal(communityStorage.getUserAddress(member1Socials[2]), address(member1), 'social 2 owner should be member after registering');
+        Assert.equal(community.getMemberCount(), prevMemberCount+1, 'member count should have increased by one');
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should be true after registering');
+        Assert.equal(community.getUserAddress(member1Socials[0]), address(member1), 'social 0 owner should be member after registering');
+        Assert.equal(community.getUserAddress(member1Socials[1]), address(member1), 'social 1 owner should be member after registering');
+        Assert.equal(community.getUserAddress(member1Socials[2]), address(member1), 'social 2 owner should be member after registering');
     }
 
     function updateMember1SocialsAsUser() public {
@@ -37,16 +37,16 @@ contract testSuite is testSuite_template {
         newSocials[0] = bytes32(0x0104000000000000000000000000000000000000000000000000000000000000);
         newSocials[1] = bytes32(0x0105000000000000000000000000000000000000000000000000000000000000);
         newSocials[2] = bytes32(0x0106000000000000000000000000000000000000000000000000000000000000);
-        uint prevMemberCount = communityStorage.getMemberCount();
+        uint prevMemberCount = community.getMemberCount();
         member1.updateSocials(newSocials);
-        Assert.equal(communityStorage.getMemberCount(), prevMemberCount, 'member count should be unchanged');
-        Assert.equal(communityStorage.isMember(address(member1)), true, 'isMember should still be true after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[0]), address(0), 'social 0 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[1]), address(0), 'social 1 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[2]), address(0), 'social 2 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[0]), address(member1), 'social 0 owner should be member after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[1]), address(member1), 'social 1 owner should be member after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[2]), address(member1), 'social 2 owner should be member after updating');
+        Assert.equal(community.getMemberCount(), prevMemberCount, 'member count should be unchanged');
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should still be true after updating');
+        Assert.equal(community.getUserAddress(oldSocials[0]), address(0), 'social 0 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(oldSocials[1]), address(0), 'social 1 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(oldSocials[2]), address(0), 'social 2 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(newSocials[0]), address(member1), 'social 0 owner should be member after updating');
+        Assert.equal(community.getUserAddress(newSocials[1]), address(member1), 'social 1 owner should be member after updating');
+        Assert.equal(community.getUserAddress(newSocials[2]), address(member1), 'social 2 owner should be member after updating');
     }
 
     function updateMember1SocialsAsAdmin() public {
@@ -58,16 +58,16 @@ contract testSuite is testSuite_template {
         newSocials[0] = bytes32(0x0107000000000000000000000000000000000000000000000000000000000000);
         newSocials[1] = bytes32(0x0108000000000000000000000000000000000000000000000000000000000000);
         newSocials[2] = bytes32(0x0109000000000000000000000000000000000000000000000000000000000000);
-        uint prevMemberCount = communityStorage.getMemberCount();
+        uint prevMemberCount = community.getMemberCount();
         community.updateSocials(address(member1), _dynToFixed(newSocials));
-        Assert.equal(communityStorage.getMemberCount(), prevMemberCount, 'member count should be unchanged');
-        Assert.equal(communityStorage.isMember(address(member1)), true, 'isMember should still be true after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[0]), address(0), 'social 0 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[1]), address(0), 'social 1 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(oldSocials[2]), address(0), 'social 2 owner should be zero after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[0]), address(member1), 'social 0 owner should be member after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[1]), address(member1), 'social 1 owner should be member after updating');
-        Assert.equal(communityStorage.getUserAddress(newSocials[2]), address(member1), 'social 2 owner should be member after updating');
+        Assert.equal(community.getMemberCount(), prevMemberCount, 'member count should be unchanged');
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should still be true after updating');
+        Assert.equal(community.getUserAddress(oldSocials[0]), address(0), 'social 0 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(oldSocials[1]), address(0), 'social 1 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(oldSocials[2]), address(0), 'social 2 owner should be zero after updating');
+        Assert.equal(community.getUserAddress(newSocials[0]), address(member1), 'social 0 owner should be member after updating');
+        Assert.equal(community.getUserAddress(newSocials[1]), address(member1), 'social 1 owner should be member after updating');
+        Assert.equal(community.getUserAddress(newSocials[2]), address(member1), 'social 2 owner should be member after updating');
     }
 
     function tryToRegisterTwice() public {
@@ -150,13 +150,13 @@ contract testSuite is testSuite_template {
     function checkThereIsAMaxLimitForRegistrations() public {
         // fill up registry
         bytes32[TEST_MAX_SOCIALS] memory socials;
-        for (uint i=communityStorage.getMemberCount(); i<community.MAX_MEMBERS(); i++) {
+        for (uint i=community.getMemberCount(); i<community.MAX_MEMBERS(); i++) {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
             community.registerMember(address(uint160(i+2)), address(1), socials);
         }
-        Assert.equal(communityStorage.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
+        Assert.equal(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
         socials[0] = bytes32(uint256(11000000));
         socials[1] = bytes32(uint256(12000000));
         socials[2] = bytes32(uint256(13000000));

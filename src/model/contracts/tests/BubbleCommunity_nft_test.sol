@@ -17,13 +17,13 @@ contract testSuite is testSuite_template {
     }
 
     function registerNFT() public {
-        uint prevNftCount = communityStorage.getNFTs().length;
-        nftContract1 = new BubbleReferralAToken("my nft", "NFT", "url", communityStorage);
-        Assert.equal(communityStorage.hasNFT(address(nftContract1)), false, 'nft should not be registered before test');
+        uint prevNftCount = community.getNFTs().length;
+        nftContract1 = new BubbleReferralAToken("my nft", "NFT", "url", community);
+        Assert.equal(community.hasNFT(address(nftContract1)), false, 'nft should not be registered before test');
         community.registerNFT(address(nftContract1));
-        Assert.equal(communityStorage.hasNFT(address(nftContract1)), true, 'nft should be registered');
-        Assert.equal(communityStorage.getNFTs().length, prevNftCount+1, 'nft count should have increased by one');
-        Assert.equal(communityStorage.getNFTs()[0], address(nftContract1), 'nft contract address is incorrect');
+        Assert.equal(community.hasNFT(address(nftContract1)), true, 'nft should be registered');
+        Assert.equal(community.getNFTs().length, prevNftCount+1, 'nft count should have increased by one');
+        Assert.equal(community.getNFTs()[0], address(nftContract1), 'nft contract address is incorrect');
     }
 
     function tryToRegisterNftTwice() public {
@@ -37,26 +37,26 @@ contract testSuite is testSuite_template {
     }
 
     function deregisterNFT() public {
-        nftContract2 = new BubbleReferralAToken("my nft 2", "NFT2", "url2", communityStorage);
+        nftContract2 = new BubbleReferralAToken("my nft 2", "NFT2", "url2", community);
         community.registerNFT(address(nftContract2));
-        nftContract3 = new BubbleReferralAToken("my nft 3", "NFT3", "url3", communityStorage);
+        nftContract3 = new BubbleReferralAToken("my nft 3", "NFT3", "url3", community);
         community.registerNFT(address(nftContract3));
-        nftContract4 = new BubbleReferralAToken("my nft 4", "NFT4", "url4", communityStorage);
+        nftContract4 = new BubbleReferralAToken("my nft 4", "NFT4", "url4", community);
         community.registerNFT(address(nftContract4));
-        Assert.equal(communityStorage.getNFTs().length, 4, 'nft count should be 4 before test');
-        Assert.equal(communityStorage.hasNFT(address(nftContract1)), true, 'nft 1 should be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract2)), true, 'nft 2 should be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract3)), true, 'nft 3 should be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract4)), true, 'nft 4 should be registered');
+        Assert.equal(community.getNFTs().length, 4, 'nft count should be 4 before test');
+        Assert.equal(community.hasNFT(address(nftContract1)), true, 'nft 1 should be registered');
+        Assert.equal(community.hasNFT(address(nftContract2)), true, 'nft 2 should be registered');
+        Assert.equal(community.hasNFT(address(nftContract3)), true, 'nft 3 should be registered');
+        Assert.equal(community.hasNFT(address(nftContract4)), true, 'nft 4 should be registered');
         community.deregisterNFT(address(nftContract2));
-        Assert.equal(communityStorage.getNFTs().length, 3, 'nft count should have decreased by one');
-        Assert.equal(communityStorage.hasNFT(address(nftContract1)), true, 'nft 1 should be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract2)), false, 'nft 2 should not be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract3)), true, 'nft 3 should be registered');
-        Assert.equal(communityStorage.hasNFT(address(nftContract4)), true, 'nft 4 should be registered');
-        Assert.equal(communityStorage.getNFTs()[0], address(nftContract1), 'nft 1 contract address is incorrect');
-        Assert.equal(communityStorage.getNFTs()[1], address(nftContract4), 'nft 4 contract address is incorrect');
-        Assert.equal(communityStorage.getNFTs()[2], address(nftContract3), 'nft 3 contract address is incorrect');
+        Assert.equal(community.getNFTs().length, 3, 'nft count should have decreased by one');
+        Assert.equal(community.hasNFT(address(nftContract1)), true, 'nft 1 should be registered');
+        Assert.equal(community.hasNFT(address(nftContract2)), false, 'nft 2 should not be registered');
+        Assert.equal(community.hasNFT(address(nftContract3)), true, 'nft 3 should be registered');
+        Assert.equal(community.hasNFT(address(nftContract4)), true, 'nft 4 should be registered');
+        Assert.equal(community.getNFTs()[0], address(nftContract1), 'nft 1 contract address is incorrect');
+        Assert.equal(community.getNFTs()[1], address(nftContract4), 'nft 4 contract address is incorrect');
+        Assert.equal(community.getNFTs()[2], address(nftContract3), 'nft 3 contract address is incorrect');
     }
 
     function tryToDeregisterUnregisteredNft() public {

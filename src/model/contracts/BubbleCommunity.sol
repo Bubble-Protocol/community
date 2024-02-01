@@ -33,7 +33,7 @@ abstract contract BubbleCommunityStorage is EternalStorage, AccessControl {
 /**
  * The community storage contract. The eternal data plus getter functions. Non-upgradeable.
  */
-contract BubbleCommunity is BubbleCommunityStorage, IMemberRegistry, Proxy {
+contract BubbleCommunity is BubbleCommunityStorage, Proxy {
 
   /**
    * @dev required by EternalStorage
@@ -49,51 +49,13 @@ contract BubbleCommunity is BubbleCommunityStorage, IMemberRegistry, Proxy {
     return implementationContract;
   }
 
-  /**
-   * @dev returns `true` if the given address is a registered member of the community
-   */
-  function isMember(address member) external view override returns (bool) {
-    return _members[member] != address(0);
-  }
-
-  /**
-   * @dev returns the owner address of the given social media username hash.
-   */
-  function getUserAddress(bytes32 usernameHash) external view override returns (address) {
-    return _socials[usernameHash];
-  }
-
-  /**
-   * @dev returns a list of all the registered nft contracts
-   */
-  function getMemberCount() external view returns (uint) {
-    return _memberCount;
-  }
-
-  /**
-   * @dev returns `true` if the given contract address is a registered NFT
-   */
-  function hasNFT(address nftContract) public view returns (bool) {
-    for (uint i=0; i<_nfts.length; i++) {
-      if (_nfts[i] == nftContract) return true;
-    }
-    return false;
-  }
-
-  /**
-   * @dev returns a list of all the registered nft contracts
-   */
-  function getNFTs() external view returns (address[] memory) {
-    return _nfts;
-  }
-
 }
 
 
 /**
  * Upgradeable implementation.
  */
-contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControlledStorage {
+contract BubbleCommunityImplementation is BubbleCommunityStorage, IMemberRegistry, AccessControlledStorage {
 
   /**
    * @dev maximum number of members allowed in the community
@@ -122,6 +84,27 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
     initialised = true;
   }
   
+  /**
+   * @dev returns the owner address of the given social media username hash.
+   */
+  function getUserAddress(bytes32 usernameHash) external view override returns (address) {
+    return _socials[usernameHash];
+  }
+
+  /**
+   * @dev returns a list of all the registered nft contracts
+   */
+  function getMemberCount() external view returns (uint) {
+    return _memberCount;
+  }
+
+  /**
+   * @dev returns a list of all the registered nft contracts
+   */
+  function getNFTs() external view returns (address[] memory) {
+    return _nfts;
+  }
+
   /**
    * @dev register yourself as member of the community
    */
@@ -165,8 +148,21 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   }
 
   /**
-   * @dev deregisters the given member and bans their socials.
-   * Note, there is no point banning the member address since it is trivial to create a new one.
+   * @dev returns `true` if the given address is a registered member of the community
+   */
+  function isMember(address member) public view returns (bool) {
+    return _members[member] != address(0) && _members[member] != BANNED_FLAG;
+  }
+
+  /**
+   * @dev returns `true` if the given address is a registered member of the community
+   */
+  function isLoginFor(address member, address login) public view returns (bool) {
+    return _members[member] == login;
+  }
+
+  /**
+   * @dev bans the given member and their socials.
    */
   function banMember(address member) external onlyRole(MEMBER_ADMIN_ROLE) {
     _banMember(member);
@@ -174,11 +170,17 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
 
   /**
    * @dev bans the given social usernames from the community. Usernames must not be registered.
-   * If banning a specific member's usernames use `banMember`. If banned member has already
-   * deregistered themselves use `updateSocials`.
+   * If banning a specific member's usernames use `banMember`.
    */
   function banSocials(bytes32[] memory socials) external onlyRole(MEMBER_ADMIN_ROLE) {
     for (uint i=0; i<socials.length; i++) _banSocial(socials[i]);
+  }
+
+  /**
+   * @dev unbans the given member allowing them to re-register.
+   */
+  function unbanMember(address member) external onlyRole(MEMBER_ADMIN_ROLE) {
+    _unbanMember(member);
   }
 
   /**
@@ -189,25 +191,25 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   }
 
   /**
+   * @dev returns `true` if the given address is banned from the community
+   */
+  function isBanned(address member) public view returns (bool) {
+    return _members[member] == BANNED_FLAG;
+  }
+
+  /**
+   * @dev returns `true` if the given social is banned from the community
+   */
+  function isBanned(bytes32 usernameHash) public view returns (bool) {
+    return _socials[usernameHash] == BANNED_FLAG;
+  }
+
+  /**
    * @dev registers a new NFT to this community
    */
   function registerNFT(address nftContract) external onlyRole(NFT_ADMIN_ROLE) {
     require (!hasNFT(nftContract), 'already registered');
     _nfts.push(nftContract);
-  }
-
-  /**
-   * @dev returns `true` if the given address is a registered member of the community
-   */
-  function isMember(address member) public view returns (bool) {
-    return _members[member] != address(0);
-  }
-
-  /**
-   * @dev returns `true` if the given address is a registered member of the community
-   */
-  function isLoginFor(address member, address login) public view returns (bool) {
-    return _members[member] == login;
   }
 
   /**
@@ -261,7 +263,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
       }
       else {
         if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // NFT admins have rwa access to NFT directories
-        if (hasRole(MEMBER_ADMIN_ROLE, user)) return WRITE_BIT;      // Member admins have access to delete deregistered members' files
+        if (hasRole(MEMBER_ADMIN_ROLE, user)) return WRITE_BIT;      // Member admins have access to delete deregistered and banned members' files
       }
     }
     return NO_PERMISSIONS;
@@ -277,6 +279,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * @dev registers the given user 
    */
   function _registerMember(address member, address login, bytes32[MAX_SOCIALS] memory socials) private {
+    require (_members[member] != BANNED_FLAG, 'user banned');
     require (_members[member] == address(0), 'already a member');
     require (_memberCount < MAX_MEMBERS, 'membership full');
     for (uint i=0; i<NUM_SOCIALS; i++) {
@@ -295,6 +298,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * @dev deregisters the given member and socials 
    */
   function _deregisterMember(address member) private {
+    require (_members[member] != BANNED_FLAG, 'user banned');
     require (isMember(member), 'not a member');
     bytes32[MAX_SOCIALS] memory socials = _memberSocials[member];
     for (uint i=0; i<MAX_SOCIALS; i++) delete _socials[socials[i]];
@@ -307,6 +311,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
    * @dev update socials for the given user 
    */
   function _updateSocials(address member, bytes32[MAX_SOCIALS] memory newSocials) private {
+    require (_members[member] != BANNED_FLAG, 'user banned');
     require (_members[member] != address(0), 'not a member');
     bytes32[MAX_SOCIALS] memory oldSocials = _memberSocials[member];
     for (uint i=0; i<MAX_SOCIALS; i++) delete _socials[oldSocials[i]];
@@ -320,9 +325,10 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
   }
 
   /**
-   * @dev bans all of the member's socials and deregisters the member
+   * @dev bans the member and all of their socials
    */
   function _banMember(address member) private {
+    require (_members[member] != BANNED_FLAG, 'already banned');
     require (isMember(member), 'not a member');
     bytes32[MAX_SOCIALS] memory socials = _memberSocials[member];
     for (uint i=0; i<MAX_SOCIALS; i++) {
@@ -330,8 +336,16 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, AccessControll
       if (usernameHash != 0) _socials[usernameHash] = BANNED_FLAG;
     }
     delete _memberSocials[member];
-    delete _members[member];
+    _members[member] = BANNED_FLAG;
     if (_memberCount > 0) _memberCount--;
+  }
+
+  /**
+   * @dev unbans the given member allowing them to re-register
+   */
+  function _unbanMember(address member) private {
+    require(_members[member] == BANNED_FLAG, 'member is not banned');
+    delete _members[member];
   }
 
   /**
