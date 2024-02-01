@@ -13,8 +13,6 @@ import { polygon } from 'wagmi/chains';
  * @dev Configuration of the RainbowKit wallet
  */
 
-const WALLET_CONNECT_PROJECT_ID = 'be5ecff22a547fe5ff88a79a14eb5bae'; // 'YOUR_PROJECT_ID';
-
 const { chains, publicClient } = configureChains(
   [polygon],
   [
@@ -24,7 +22,7 @@ const { chains, publicClient } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: 'Bubble Protocol Community',
-  projectId: WALLET_CONNECT_PROJECT_ID,
+  projectId: process.env.REACT_APP_WALLET_CONNECT_PROJECT_ID,
   chains
 });
 
