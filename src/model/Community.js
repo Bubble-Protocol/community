@@ -99,7 +99,7 @@ function constructSocials(details) {
   if (!trimmedDetails.telegram) throw new Error('missing telegram username');
   const socialHashes = [];
   ['twitter', 'discord', 'telegram'].forEach(social => {
-    socialHashes.push(keccak256(social+':'+trimmedDetails[social]));
+    socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+trimmedDetails[social]));
   })
   socialHashes.push(NULL_SOCIAL);
   socialHashes.push(NULL_SOCIAL);
