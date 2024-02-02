@@ -96,7 +96,12 @@ export class Wallet {
 
     console.trace('txHash', txHash);
 
-    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    const receipt = 
+      await publicClient.waitForTransactionReceipt({ hash: txHash, retryCount: 30 })
+      .catch(error => {
+        console.warn(error);
+        throw new AppError('Timed out waiting for transaction. The network could just be busy and your transaction may still go through. Check your wallet for more information.', {code: 'timeout', cause: error});
+      });
 
     console.trace('receipt', receipt);
 
