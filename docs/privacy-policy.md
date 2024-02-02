@@ -2,7 +2,7 @@
 title: Bubble Protocol Community Privacy Policy
 description: This Privacy Policy outlines the collection, use, and protection of personal information by the Bubble Protocol Community app, part of the Bubble Protocol website.
 image: ./img/bubble-protocol.png
-image-width: full
+image-width: medium
 ---
 # Bubble Protocol Community Privacy Policy
 
