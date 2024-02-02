@@ -10,6 +10,7 @@ import UI from './ui/App.js';
 import { rainbowKitConfig } from './rainbow-kit.js';
 import ImportedHTML from './ui/components/ImportedHTML/ImportedHTML.js';
 import { CommunityApp } from './model/App.js';
+import './index.css';
 
 /**
  * @dev Add trace and debug commands to the console. Use `console.stackTrace` to dump the stack.
@@ -38,7 +39,12 @@ root.render(
           <ImportedHTML url='/header.html' />
           <div id="page">
             <UI />
-            <ImportedHTML url='/footer.html' containerClass='footer-container' />
+            <div className='footer-section'>
+              <ImportedHTML url='/footer.html' containerClass='footer-container' />
+              <div className='policy-bar'>
+                <a className='policy-link' href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target='_blank'>Privacy Policy</a>
+              </div>
+            </div>
           </div>
         </div>
       </RainbowKitProvider>
