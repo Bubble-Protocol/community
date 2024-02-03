@@ -41,8 +41,8 @@ root.render(
             <UI />
             <div className='footer-section'>
               <ImportedHTML url='/footer.html' containerClass='footer-container' />
-              <div className='policy-bar'>
-                <a className='policy-link' href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target='_blank'>Privacy Policy</a>
+              <div className='community-policy-bar'>
+                <a className='community-policy-link' href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target='_blank'>Privacy Policy</a>
               </div>
             </div>
           </div>

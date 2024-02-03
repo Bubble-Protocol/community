@@ -21,16 +21,16 @@
   background-size: 80% 1px;
 }
 
-.policy-bar {
+.community-policy-bar {
   display: flex;
   gap: 64px;
 }
 
-.policy-link, .policy-link:visited {
+.community-policy-link, .community-policy-link:visited {
   color:#999;
   text-decoration: none;
 }
 
-.policy-link:hover {
+.community-policy-link:hover {
   cursor: pointer;
 }
