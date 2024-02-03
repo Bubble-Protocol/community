@@ -45,13 +45,13 @@ export function Dashboard() {
           Your Bubble Community Account
         </span>
         <p className="page-summary">
-          Welcome to your Bubble Community Dashboard.
+          Welcome to your Bubble Community dashboard.
           From here you can manage your account and access all our exclusive member-only benefits.
         </p>
       </div>
 
       <div className="page-width-section center">
-        <a className="community-link" href="">Click Here to join our exclusive member-only Galxe campaigns and start earning community rewards!</a>
+        <span className="community-notice">Check back here regularly for exclusive member-only events!</span>
       </div>
 
       {!detailsVisible && <div className="section-link" onClick={() => setDetailsVisible(true)}>Manage Your Account</div>}
