@@ -52,6 +52,16 @@ contract BubbleCommunity is BubbleCommunityStorage, Proxy {
 }
 
 
+
+/*
+ * Implementation dependent bubble directories
+ */
+
+uint constant PUBLIC_DIR = 0x8000000000000000000000000000000000000000000000000000000000000001;        // Directory for public files like NFT images
+uint constant MEMBER_DIR = 0x8000000000000000000000000000000000000000000000000000000000000002;        // Directory restricted to members only
+uint constant MEMBER_ADMIN_DIR = 0x8000000000000000000000000000000000000000000000000000000000000003;  // Directory restricted to member admins only
+
+
 /**
  * Upgradeable implementation.
  */
@@ -242,30 +252,39 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, IMemberRegistr
    * @dev bubble permissions
    */
   function getAccessPermissions( address user, uint256 contentId ) external view override returns (uint256) {
+
     // Only the owner has permission to create the bubble. Member admins can read the root
     if (contentId == 0) return 
-      hasRole(DEFAULT_ADMIN_ROLE, user) ? RWA_BITS 
-      : hasRole(MEMBER_ADMIN_ROLE, user) ? READ_BIT
+      hasRole(DEFAULT_ADMIN_ROLE, user) ? DRWA_BITS 
+      : hasRole(MEMBER_ADMIN_ROLE, user) ? DIRECTORY_BIT | READ_BIT
       : NO_PERMISSIONS;
+
+    // Public dir is readable by the public and writable by all admins
+    if (contentId == PUBLIC_DIR) return 
+      hasRole(MEMBER_ADMIN_ROLE, user) || hasRole(NFT_ADMIN_ROLE, user) ? DRWA_BITS 
+      : DIRECTORY_BIT | READ_BIT;
+
+    // Member dir is readable by members and writable by member admins
+    bool member = isMember(user);
+    if (contentId == MEMBER_DIR) return 
+      hasRole(MEMBER_ADMIN_ROLE, user) ? DRWA_BITS 
+      : member ? DIRECTORY_BIT | READ_BIT
+      : NO_PERMISSIONS;
+
     // Member admins have rwa access to the admin directory
-    if (contentId == 0x8000000000000000000000000000000000000000000000000000000000000001 && hasRole(MEMBER_ADMIN_ROLE, user)) return DRWA_BITS;
-    // Only content within address range is applicable to this bubble
+    if (contentId == MEMBER_ADMIN_DIR && hasRole(MEMBER_ADMIN_ROLE, user)) return DRWA_BITS;
+
+    // Only other content within address range is applicable to this bubble
     if (contentId < 2**160) {
       address contentAddr = address(uint160(contentId));
       if (isMember(contentAddr)) {
-        if (isMember(user) && contentAddr == user) return RWA_BITS;  // Members have rwa access to their own file
+        if (member && contentAddr == user) return RWA_BITS;          // Members have rwa access to their own file
         if (isLoginFor(contentAddr, user)) return RWA_BITS;          // Member login addresses have rwa access to their own file
         if (hasRole(MEMBER_ADMIN_ROLE, user)) return READ_BIT;       // Member admins have read access to members' files
       }
-      else if (hasNFT(contentAddr)) {
-        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // NFT admins have rwa access to NFT directories
-        else return READ_BIT;                                        // Everyone has read access to registered NFT directories
-      }
-      else {
-        if (hasRole(NFT_ADMIN_ROLE, user)) return DRWA_BITS;         // NFT admins have rwa access to NFT directories
-        if (hasRole(MEMBER_ADMIN_ROLE, user)) return WRITE_BIT;      // Member admins have access to delete deregistered and banned members' files
-      }
+      else if (hasRole(MEMBER_ADMIN_ROLE, user)) return WRITE_BIT;   // Member admins have access to delete deregistered and banned members' files
     }
+
     return NO_PERMISSIONS;
   }
 
