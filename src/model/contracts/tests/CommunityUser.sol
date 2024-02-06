@@ -3,7 +3,8 @@
 pragma solidity 0.8.24;
 
 import {BubbleCommunityImplementation} from "../BubbleCommunity.sol";
-import {BubbleReferralAToken} from "../nfts/BubbleReferralAToken.sol";
+import {BubbleReferralAToken} from "../tokens/BubbleReferralAToken.sol";
+import {BubblePreGovernanceToken, Mint} from "../tokens/BubblePreGovernanceToken.sol";
 
 uint constant TEST_MAX_SOCIALS = 5;
 
@@ -76,15 +77,27 @@ contract CommunityUser {
     // NFT API
     //
 
-    function mint(BubbleReferralAToken nftContract, address member) public returns (uint256) {
+    function mintToken(BubblePreGovernanceToken tokenContract, address member, uint value) public {
+      tokenContract.mint(member, value);
+    }
+
+    function mintBatchToken(BubblePreGovernanceToken tokenContract, Mint[] memory batch) public {
+      tokenContract.mintBatch(batch);
+    }
+
+    function closeToken(BubblePreGovernanceToken nftContract) public {
+      nftContract.close();
+    }
+
+    function mintNft(BubbleReferralAToken nftContract, address member) public returns (uint256) {
       return nftContract.mint(member);
     }
 
-    function mintBatch(BubbleReferralAToken nftContract, address[] memory members) public returns (uint256) {
+    function mintBatchNft(BubbleReferralAToken nftContract, address[] memory members) public returns (uint256) {
       return nftContract.mintBatch(members);
     }
 
-    function close(BubbleReferralAToken nftContract) public {
+    function closeNft(BubbleReferralAToken nftContract) public {
       nftContract.close();
     }
 

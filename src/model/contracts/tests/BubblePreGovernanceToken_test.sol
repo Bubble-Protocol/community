@@ -3,19 +3,19 @@
 pragma solidity 0.8.24;
 
 import "./BubbleCommunity_test_common.sol";
-import {BubbleReferralAToken} from "../tokens/BubbleReferralAToken.sol";
+import {BubblePreGovernanceToken, Mint} from "../tokens/BubblePreGovernanceToken.sol";
 
 contract testSuite is testSuite_template {
 
-    BubbleReferralAToken nft;
+    BubblePreGovernanceToken token;
     address[] registeredAddresses = new address[](50);
     address additionalUser;
     address loginAddress = address(1001);
 
     function beforeAll() public {
         init();
-        nft = new BubbleReferralAToken("my nft", "nft", "url", community);
-        Assert.equal(nft.tokenCount(), 0, "unexpected token count");
+        token = new BubblePreGovernanceToken("my token", "token", community);
+        Assert.equal(token.totalSupply(), 0, "unexpected token count");
         bytes32[TEST_MAX_SOCIALS] memory socials;
         for (uint i=0; i<registeredAddresses.length; i++) {
             registeredAddresses[i] = address(uint160(i+2));
@@ -23,57 +23,61 @@ contract testSuite is testSuite_template {
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
             community.registerMember(registeredAddresses[i], loginAddress, socials);
+            Assert.ok(community.isMember(registeredAddresses[i]), 'not a member');
         }
     }
 
     function canGetMemberRegistry() public {
-        Assert.equal(address(nft.getMemberRegistry()), address(community), "registry incorrect");
+        Assert.equal(address(token.getMemberRegistry()), address(community), "registry incorrect");
     }
 
     function canMintBatch() public {
-        nft.mintBatch(registeredAddresses);
-        Assert.equal(nft.tokenCount(), registeredAddresses.length, "unexpected token count");
+        Mint[] memory batch = new Mint[](registeredAddresses.length);
+        uint total = 0;
+        for (uint i=0; i<registeredAddresses.length; i++) {
+            batch[i] = Mint(registeredAddresses[i], i+1);
+            total += i+1;
+        }
+        token.mintBatch(batch);
+        Assert.equal(token.totalSupply(), total, "unexpected token count");
+        for (uint i=0; i<registeredAddresses.length; i++) {
+            Assert.equal(token.balanceOf(registeredAddresses[i]), i+1, 'member balance incorrect');
+        }
+    }
+
+    function canMintBatchAgain() public {
+        Mint[] memory batch = new Mint[](registeredAddresses.length);
+        uint total = token.totalSupply();
+        for (uint i=0; i<registeredAddresses.length; i++) {
+            batch[i] = Mint(registeredAddresses[i], i+1);
+            total += i+1;
+        }
+        token.mintBatch(batch);
+        Assert.equal(token.totalSupply(), total, "unexpected token count");
+        for (uint i=0; i<registeredAddresses.length; i++) {
+            Assert.equal(token.balanceOf(registeredAddresses[i]), 2*(i+1), 'member balance incorrect');
+        }
     }
 
     function canMint() public {
-        additionalUser = address(uint160(registeredAddresses.length+2));
-        bytes32[TEST_MAX_SOCIALS] memory socials;
-        socials[0] = bytes32(uint256(11000000));
-        socials[1] = bytes32(uint256(12000000));
-        socials[2] = bytes32(uint256(13000000));
-        community.registerMember(additionalUser, loginAddress, socials);
-        nft.mint(additionalUser);
-        Assert.equal(nft.tokenCount(), registeredAddresses.length+1, "unexpected token count");
+        uint supply = token.totalSupply();
+        uint balance = token.balanceOf(registeredAddresses[0]);
+        token.mint(registeredAddresses[0], 17);
+        Assert.equal(token.totalSupply(), supply+17, "unexpected token count");
+        Assert.equal(token.balanceOf(registeredAddresses[0]), balance+17, 'member balance incorrect');
     }
 
-    function checkSameUriForEveryToken() public {
-        Assert.equal(nft.tokenURI(0), "url", 'min uri incorrect');
-        Assert.equal(nft.tokenURI(registeredAddresses.length-1), "url", 'max uri incorrect');
-    }
-
-    function tryToMintForSameMemberTwice() public {
-        try nft.mint(additionalUser) {
-            Assert.ok(false, "method should revert");
-        } catch Error(string memory reason) {
-            Assert.equal(reason, "already an owner", "expected revert message incorrect");
-        } catch (bytes memory /*lowLevelData*/) {
-            Assert.ok(false, "failed unexpected");
-        }
-    }
-
-    function tryToMintBatchForSameMemberTwice() public {
-        try nft.mintBatch(registeredAddresses) {
-            Assert.ok(false, "method should revert");
-        } catch Error(string memory reason) {
-            Assert.equal(reason, "already an owner", "expected revert message incorrect");
-        } catch (bytes memory /*lowLevelData*/) {
-            Assert.ok(false, "failed unexpected");
-        }
+    function canMintAgain() public {
+        uint supply = token.totalSupply();
+        uint balance = token.balanceOf(registeredAddresses[0]);
+        token.mint(registeredAddresses[0], 17);
+        Assert.equal(token.totalSupply(), supply+17, "unexpected token count");
+        Assert.equal(token.balanceOf(registeredAddresses[0]), balance+17, 'member balance incorrect');
     }
 
     function tryToMintForNonMember() public {
         address unregisteredAddress = address(uint160(1000));
-        try nft.mint(unregisteredAddress) {
+        try token.mint(unregisteredAddress, 1) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "not a community member", "expected revert message incorrect");
@@ -84,9 +88,9 @@ contract testSuite is testSuite_template {
 
     function tryToMintBatchForNonMember() public {
         address unregisteredAddress = address(uint160(1000));
-        address[] memory batch = new address[](1);
-        batch[0] = unregisteredAddress;
-        try nft.mintBatch(batch) {
+        Mint[] memory batch = new Mint[](1);
+        batch[0] = Mint(unregisteredAddress, 1);
+        try token.mintBatch(batch) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "not a community member", "expected revert message incorrect");
@@ -96,16 +100,15 @@ contract testSuite is testSuite_template {
     }
 
     function checkNonTransferable() public {
-        uint tokenId = 0;
         address to = address(uint160(1000));
-        try nft.transferFrom(registeredAddresses[0], to, tokenId) {
+        try token.transfer(to, 1) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "tokens are non-transferable", "expected revert message incorrect");
         } catch (bytes memory /*lowLevelData*/) {
             Assert.ok(false, "failed unexpected");
         }
-        try nft.safeTransferFrom(registeredAddresses[0], to, tokenId) {
+        try token.transferFrom(registeredAddresses[0], to, 1) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "tokens are non-transferable", "expected revert message incorrect");
@@ -115,16 +118,8 @@ contract testSuite is testSuite_template {
     }
 
     function checkNonApprovable() public {
-        uint tokenId = 0;
         address to = address(uint160(1000));
-        try nft.approve(to, tokenId) {
-            Assert.ok(false, "method should revert");
-        } catch Error(string memory reason) {
-            Assert.equal(reason, "tokens are non-transferable", "expected revert message incorrect");
-        } catch (bytes memory /*lowLevelData*/) {
-            Assert.ok(false, "failed unexpected");
-        }
-        try nft.setApprovalForAll(to, true) {
+        try token.approve(to, 1) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "tokens are non-transferable", "expected revert message incorrect");
@@ -134,7 +129,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallMintWithoutOwnerRole() public {
-        try member1.mintNft(nft, address(member1)) {
+        try member1.mintToken(token, address(member1), 1) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
@@ -142,7 +137,9 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallMintBatchWithoutOwnerRole() public {
-        try member1.mintBatchNft(nft, registeredAddresses) {
+        Mint[] memory batch = new Mint[](1);
+        batch[0] = Mint(address(member1), 1);
+        try member1.mintBatchToken(token, batch) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
@@ -150,7 +147,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallCloseWithoutOwnerRole() public {
-        try member1.closeNft(nft) {
+        try member1.closeToken(token) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
@@ -158,13 +155,13 @@ contract testSuite is testSuite_template {
     }
 
     function checkOwnerCanClose() public {
-        Assert.equal(nft.isClosed(), false, 'token should not be closed before test');
-        nft.close();
-        Assert.equal(nft.isClosed(), true, 'token should be closed');
+        Assert.equal(token.isClosed(), false, 'token should not be closed before test');
+        token.close();
+        Assert.equal(token.isClosed(), true, 'token should be closed');
     }
 
     function checkMintingDisallowedWhenClosed() public {
-        try nft.mint(registeredAddresses[0]) {
+        try token.mint(registeredAddresses[0], 1) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "round is closed", "expected revert message incorrect");
@@ -174,7 +171,9 @@ contract testSuite is testSuite_template {
     }
 
     function checkBatchMintingDisallowedWhenClosed() public {
-        try nft.mintBatch(registeredAddresses) {
+        Mint[] memory batch = new Mint[](1);
+        batch[0] = Mint(registeredAddresses[0], 1);
+        try token.mintBatch(batch) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "round is closed", "expected revert message incorrect");
@@ -182,6 +181,5 @@ contract testSuite is testSuite_template {
             Assert.ok(false, "failed unexpected");
         }
     }
-
 
 }
