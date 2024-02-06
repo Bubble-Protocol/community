@@ -3,7 +3,7 @@
 pragma solidity 0.8.24;
 
 import "./BubbleCommunity_test_common.sol";
-import {BubbleReferralAToken} from "../nfts/BubbleReferralAToken.sol";
+import {BubbleReferralAToken} from "../tokens/BubbleReferralAToken.sol";
 
 contract testSuite is testSuite_template {
 

@@ -3,13 +3,14 @@
 pragma solidity 0.8.24;
 
 import "./BubbleCommunity_test_common.sol";
-import {BubbleReferralAToken} from "../nfts/BubbleReferralAToken.sol";
+import {BubbleReferralAToken} from "../tokens/BubbleReferralAToken.sol";
 
 contract testSuite is testSuite_template {
 
     BubbleReferralAToken nft;
     address[] registeredAddresses = new address[](50);
     address additionalUser;
+    address loginAddress = address(1001);
 
     function beforeAll() public {
         init();
@@ -21,7 +22,7 @@ contract testSuite is testSuite_template {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
-            community.registerMember(registeredAddresses[i], address(1), socials);
+            community.registerMember(registeredAddresses[i], loginAddress, socials);
         }
     }
 
@@ -40,7 +41,7 @@ contract testSuite is testSuite_template {
         socials[0] = bytes32(uint256(11000000));
         socials[1] = bytes32(uint256(12000000));
         socials[2] = bytes32(uint256(13000000));
-        community.registerMember(additionalUser, address(1), socials);
+        community.registerMember(additionalUser, loginAddress, socials);
         nft.mint(additionalUser);
         Assert.equal(nft.tokenCount(), registeredAddresses.length+1, "unexpected token count");
     }
@@ -133,7 +134,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallMintWithoutOwnerRole() public {
-        try member1.mint(nft, address(member1)) {
+        try member1.mintNft(nft, address(member1)) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
@@ -141,7 +142,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallMintBatchWithoutOwnerRole() public {
-        try member1.mintBatch(nft, registeredAddresses) {
+        try member1.mintBatchNft(nft, registeredAddresses) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
@@ -149,10 +150,36 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallCloseWithoutOwnerRole() public {
-        try member1.close(nft) {
+        try member1.closeNft(nft) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
             assertOwnableUnauthorizedAccountError(reason);
+        }
+    }
+
+    function checkOwnerCanClose() public {
+        Assert.equal(nft.isClosed(), false, 'token should not be closed before test');
+        nft.close();
+        Assert.equal(nft.isClosed(), true, 'token should be closed');
+    }
+
+    function checkMintingDisallowedWhenClosed() public {
+        try nft.mint(registeredAddresses[0]) {
+            Assert.ok(false, "method should revert");
+        } catch Error(string memory reason) {
+            Assert.equal(reason, "round is closed", "expected revert message incorrect");
+        } catch (bytes memory /*lowLevelData*/) {
+            Assert.ok(false, "failed unexpected");
+        }
+    }
+
+    function checkBatchMintingDisallowedWhenClosed() public {
+        try nft.mintBatch(registeredAddresses) {
+            Assert.ok(false, "method should revert");
+        } catch Error(string memory reason) {
+            Assert.equal(reason, "round is closed", "expected revert message incorrect");
+        } catch (bytes memory /*lowLevelData*/) {
+            Assert.ok(false, "failed unexpected");
         }
     }
 

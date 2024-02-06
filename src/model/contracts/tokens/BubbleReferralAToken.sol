@@ -31,7 +31,7 @@ contract BubbleReferralAToken is ERC721, Ownable {
      */
     function mint(address member) public onlyOwner returns (uint256)
     {
-      require(!_closed, 'round closed');
+      require(!_closed, 'round is closed');
       require(_memberRegistry.isMember(member), 'not a community member');
       require(balanceOf(member) == 0, 'already an owner');
       uint256 tokenId = _nextTokenId++;
@@ -45,7 +45,7 @@ contract BubbleReferralAToken is ERC721, Ownable {
      */
     function mintBatch(address[] memory members) public onlyOwner returns (uint256)
     {
-      require(!_closed, 'round closed');
+      require(!_closed, 'round is closed');
       uint256 firstToken = _nextTokenId;
       for (uint i=0; i<members.length; i++) {
         address member = members[i];
@@ -59,8 +59,15 @@ contract BubbleReferralAToken is ERC721, Ownable {
     /**
      * @dev closes the round so no more tokens can be minted
      */
-    function close() public onlyOwner {
+    function close() external onlyOwner {
       _closed = true;
+    }
+
+    /**
+     * @dev returns `true` if this round is closed
+     */
+    function isClosed() external view returns (bool) {
+      return _closed;
     }
 
     /**
@@ -68,6 +75,13 @@ contract BubbleReferralAToken is ERC721, Ownable {
      */
     function getMemberRegistry() external view returns (IMemberRegistry) {
       return _memberRegistry;
+    }
+
+    /**
+     * @dev sets the member registry contract
+     */
+    function setMemberRegistry(IMemberRegistry memberRegistry) external onlyOwner {
+      _memberRegistry = memberRegistry;
     }
 
     /**
