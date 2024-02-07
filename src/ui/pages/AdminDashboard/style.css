@@ -41,3 +41,52 @@
   cursor: pointer;
 }
 
+.admin-dashboard .section-title {
+  font-size: 32px;
+}
+
+.admin-dashboard .admin-section {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+}
+
+.admin-dashboard .admin-contents {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.admin-dashboard .menu {
+  flex: 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  border-right: 1px solid #ccc;
+}
+
+.admin-dashboard .menu-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: rgb(73, 53, 48);;
+  text-decoration: underline;
+}
+
+.admin-dashboard .menu-item {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(204, 91, 68);
+}
+
+.admin-dashboard .menu-item.selected {
+  font-weight: 700;
+  color: rgb(244, 42, 2);
+}
+
+.admin-dashboard .menu-item:hover {
+  cursor: pointer;
+}
+
