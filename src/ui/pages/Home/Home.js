@@ -52,6 +52,8 @@ export function Home() {
         <div className="page-width-section">
           <span className="section-title">Join The Community</span>
 
+          {appState !== 'closed' && appState !== 'initialising' && <ConnectButton /> }
+
           {/* Spinner View */}
           {appState === 'initialising' && <div className="loader"></div>}
 
@@ -72,16 +74,13 @@ export function Home() {
 
           {/* Login View */}
           {appState === 'initialised' && sessionState !== 'logged-in' &&
-            <>
-              <ConnectButton />
-              <div className="button-row">
-                <div className="cta-button-solid" onClick={() => login(rememberMe)}>Login</div>
-                <div className="selector">
-                  <CheckBox selected={rememberMe} setSelected={setRememberMe} />
-                  <span>Remember Me</span>
-                </div>
+            <div className="button-row">
+              <div className="cta-button-solid" onClick={() => login(rememberMe)}>Login</div>
+              <div className="selector">
+                <CheckBox selected={rememberMe} setSelected={setRememberMe} />
+                <span>Remember Me</span>
               </div>
-            </>
+            </div>
           }
 
           {/* Error log */}
