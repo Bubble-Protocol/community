@@ -19,16 +19,18 @@ export function AdminDashboard() {
   const { deregisterMember, banMember } = stateManager.useStateData('community-functions')();
   const { mint } = stateManager.useStateData('token-functions')();
   const { memberCount } = stateManager.useStateData('community-stats')();
+  const members = stateManager.useStateData('all-members')();
 
   // Local state data
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
-  const [selected, setSelected] = useState('info');
+  const [selected, setSelected] = useState('members');
   const [account, setAccount] = useState('');
   const [twitter, setTwitter] = useState('');
   const [discord, setDiscord] = useState('');
   const [telegram, setTelegram] = useState('');
   const [mintAmount, setMintAmount] = useState('');
+  const [selectedMember, setSelectedMember] = useState();
 
   function deregister() {
     setError(null);
@@ -54,6 +56,14 @@ export function AdminDashboard() {
     .finally(() => setBusy(false));
   }
 
+  function setSelectedMemberTo(member) {
+    setSelectedMember(member);
+    setAccount(member.account);
+    setTwitter(member.twitter);
+    setDiscord(member.discord);
+    setTelegram(member.telegram);
+  }
+
   const accountValid = ecdsa.assert.isAddress(account);
 
   const usernamesValid = 
@@ -74,6 +84,7 @@ export function AdminDashboard() {
       <div className="page-width-section admin-section">
 
         <div className="menu">
+          <div className={"menu-item" + (selected === 'members' ? ' selected' : '')} onClick={() => setSelected('members')}>All Members</div>
           <div className={"menu-item" + (selected === 'info' ? ' selected' : '')} onClick={() => setSelected('info')}>Member Info</div>
           <div className={"menu-item" + (selected === 'register' ? ' selected' : '')} onClick={() => setSelected('register')}>Register Member</div>
           <div className={"menu-item" + (selected === 'deregister' ? ' selected' : '')} onClick={() => setSelected('deregister')}>Deregister Member</div>
@@ -84,6 +95,30 @@ export function AdminDashboard() {
         </div>
 
         <div className="admin-contents">
+
+          { selected === 'members' &&
+            <>
+              <span className="section-title">All Members</span>
+              <div className="member-list">
+                <div className="member header-row">
+                  <div>Account</div>
+                  <div>Twitter</div>
+                  <div>Discord</div>
+                  <div>Telegram</div>
+                  <div>Name</div>
+                </div>
+                {members.map(m => 
+                  <div className={"member" + (selectedMember === m ? ' selected' : '')} key={m.account} onClick={() => setSelectedMemberTo(m)}>
+                    <div className="mono">{formatAccount(m.account)}</div>
+                    <div>{m.twitter}</div>
+                    <div>{m.discord}</div>
+                    <div>{m.telegram}</div>
+                    <div>{m.name}</div>
+                  </div>
+                )}
+              </div>
+            </>
+          }
 
           { selected === 'info' &&
             <>
@@ -204,6 +239,10 @@ export function AdminDashboard() {
 function formatError(error) {
   if (error.code === 'username-registered') return "One of your usernames has already been registered to a different user";
   return error.details || error.message || error;
+}
+
+function formatAccount(acc) {
+  return acc.slice(0,6) + '..' + acc.slice(-4);
 }
 
 function isInteger(str) {

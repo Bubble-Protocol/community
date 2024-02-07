@@ -76,13 +76,14 @@ export class CommunityApp {
 
     // Register UI state data
     stateManager.register('state', this.state);
+    stateManager.register('error');
     stateManager.register('session-state', 'closed');
     stateManager.register('isMember', false);
     stateManager.register('isBanned', false);
     stateManager.register('isMemberAdmin', false);
     stateManager.register('member-data', {});
     stateManager.register('member-points', 0);
-    stateManager.register('error');
+    stateManager.register('all-members', []);
 
     // Register UI functions
     stateManager.register('wallet-functions', {

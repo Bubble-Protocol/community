@@ -1,9 +1,10 @@
-import { Bubble, EncryptionPolicy, assert, bubbleProviders, encryptionPolicies, toDelegateSignFunction, userManagers } from "@bubble-protocol/client";
+import { Bubble, EncryptionPolicy, assert, bubbleProviders, encryptionPolicies, toDelegateSignFunction, toFileId, userManagers } from "@bubble-protocol/client";
 import { ecdsa } from "@bubble-protocol/crypto";
 import { Key, publicKeyToAddress } from "@bubble-protocol/crypto/src/ecdsa";
 import { hexToUint8Array, uint8ArrayToHex } from "@bubble-protocol/crypto/src/utils";
 import secp256k1 from 'secp256k1';
 import { AppError } from "../utils/errors";
+import { stateManager } from "../../state-context";
 
 
 export class MemberAdminBubble {
@@ -31,19 +32,35 @@ export class MemberAdminBubble {
   }
 
   async initialise() {
-    console.trace('initialising member bubble', this.bubble.contentId, this.dataFile);
+    console.trace('initialising member admin bubble', this.bubble.contentId, this.dataFile);
     await this.bubble.initialise()
       .catch(error => {
         console.debug(error)
         if (error.message.match(/^user metadata file is missing/)) throw new AppError('Your administrator user file is missing from the bubble. Send the following code to the community administrator: "'+this.loginKey.cPublicKey+'"', {code: 'missing-admin-file', publicKey: this.loginKey.cPublicKey});
         else throw error;
       })
-    // TODO: get members
+    this.refreshAllMembers();
   }
 
   async addAdminMember(publicKey) {
     const address = publicKeyToAddress(publicKey);
     this.bubble.userManager.addUser({publicKey, metadataFile: MEMBER_ADMIN_DIR+'/'+address});
+  }
+
+  async refreshAllMembers() {
+    const files = await this.bubble.list(toFileId(0));
+    const memberFiles = files.filter(f => f.name.slice(0,3) !== '0x8');
+    const promises = memberFiles.map(f => {
+      const account = '0x' + f.name.slice(26);
+      return this.bubble.read(f.name)
+      .then(json => { 
+        const socials = JSON.parse(json);
+        return {account, ...socials}
+      });
+    });
+    const members = await Promise.all(promises);
+    console.debug('members', members);
+    stateManager.dispatch('all-members', members);
   }
 
 }
@@ -71,6 +88,16 @@ class MemberAdminEncryptionPolicy extends encryptionPolicies.MultiEncryptionPoli
     if (data.policies.length !== 2) return Promise.reject('cannot deserialize MemberAdminEncryptionPolicy: not enough or too many policies');
     await Promise.all(this.policies.map((policy, index) => policy.deserialize(data.policies[index])));
     this.policies[1].setAdminKey(this.policies[0].privateKey.toString('hex'));
+  }
+
+  // Bug fix. See https://github.com/Bubble-Protocol/bubble-sdk/issues/10 
+  encrypt(data, contentId) {
+    return this.getRelevantPolicy(contentId).encrypt(data, contentId);
+  }
+
+  // Bug fix. See https://github.com/Bubble-Protocol/bubble-sdk/issues/10
+  decrypt(data, contentId) {
+    return this.getRelevantPolicy(contentId).decrypt(data, contentId);
   }
 
 }
@@ -102,11 +129,13 @@ class MemberDataEncryptionPolicy extends EncryptionPolicy {
     throw new Error('MemberDataEncryptionPolicy.encrypt: member data file is read only for member admins');
   }
 
-  decrypt(data) {
+  decrypt(json) {
+    console.debug('decrypting', json)
+    const data = JSON.parse(json);
     const sharedSecret = uint8ArrayToHex(secp256k1.ecdh(hexToUint8Array(data.publicKey), this.adminKey));
     console.debug('shared secret:', sharedSecret)
     const decryptor = new encryptionPolicies.AESGCMEncryptionPolicy(sharedSecret);
-    return decryptor.decrypt(data.data);
+    return decryptor.decrypt(data.data).then(buf => Buffer.from(buf).toString());
   }
 
   serialize() {
