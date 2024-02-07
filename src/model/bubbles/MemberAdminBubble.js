@@ -56,11 +56,24 @@ export class MemberAdminBubble {
       .then(json => { 
         const socials = JSON.parse(json);
         return {account, ...socials}
+      })
+      .catch(error => {
+        console.warn('Failed to read member file', f.name);
+        console.warn(error);
+        return {account};
       });
     });
-    const members = await Promise.all(promises);
-    console.debug('members', members);
-    stateManager.dispatch('all-members', members);
+    this.members = await Promise.all(promises);
+    console.debug('members', this.members);
+    stateManager.dispatch('all-members', this.members);
+  }
+
+  deleteMemberFile(account) {
+    return this.bubble.delete(toFileId(account))
+    .then(() => {
+      this.members = this.members.filter(m => m.account.toLowerCase() !== account.toLowerCase());
+      stateManager.dispatch('all-members', this.members);
+    })
   }
 
 }

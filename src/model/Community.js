@@ -45,35 +45,38 @@ export class Community {
     const account = this.wallet.account;
     console.log("registering user:", account, details);
     assert.isObject(details, 'details');
-    const socialHashes = constructSocials(details);
+    const socialHashes = constructRegistrationSocials(details);
     console.log("registering on blockchain:", account, socialHashes);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes]);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes])
+    .then(this._getMemberCount.bind(this));
   }
 
   async deregister(account) {
     const walletAccount = this.wallet.account;
     if (walletAccount.toLowerCase() !== account.toLowerCase()) return Promise.reject('wallet account does not match requested account');
     console.log("deregistering user:", account);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterAsMember', []);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterAsMember', [])
+    .then(this._getMemberCount.bind(this));
   }
 
   async deregisterMember(account) {
     console.log("deregistering user:", account);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterMember', [account]);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'deregisterMember', [account])
+    .then(this._getMemberCount.bind(this));
   }
 
   async banMember(account) {
     console.log("banning user:", account);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'banMember', [account]);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'banMember', [account])
+    .then(this._getMemberCount.bind(this));
   }
 
-  async updateSocials(newDetails) {
-    const account = this.wallet.account;
-    assert.isObject(newDetails, 'newDetails');
-    const newSocialHashes = constructSocials(newDetails);
+  async unbanSocials(socials) {
+    assert.isArray(socials, 'socials');
+    const newSocialHashes = constructUnbanSocials(socials);
     if (newSocialHashes.length === 0) return Promise.resolve();
-    console.log("updating on blockchain:", account, newSocialHashes);
-    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'updateSocials', [newSocialHashes]);
+    console.log("unbanning socials:", newSocialHashes);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'unbanSocials', [newSocialHashes]);
   }
 
   _setBlockchainStat(stat, value) {
@@ -93,7 +96,7 @@ function validateSocials(details) {
   return results;
 }
 
-function constructSocials(details) {
+function constructRegistrationSocials(details) {
   const trimmedDetails = validateSocials(details);
   if (!trimmedDetails.twitter) throw new Error('missing twitter username');
   if (!trimmedDetails.discord) throw new Error('missing discord username');
@@ -104,5 +107,14 @@ function constructSocials(details) {
   })
   socialHashes.push(NULL_SOCIAL);
   socialHashes.push(NULL_SOCIAL);
+  return socialHashes;
+}
+
+function constructUnbanSocials(details) {
+  const trimmedDetails = validateSocials(details);
+  const socialHashes = [];
+  ['twitter', 'discord', 'telegram'].forEach(social => {
+    if (trimmedDetails[social]) socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+trimmedDetails[social].toLowerCase()));
+  })
   return socialHashes;
 }

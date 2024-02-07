@@ -141,18 +141,18 @@ export class CommunityApp {
    * @dev Deregister, from the blockchain and delete all data from the bubble
    */
   async deregisterMember(account) {
-    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
-    return this.community.deregisterMember(account);
-    // TODO: delete member's bubble data
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.deregisterMember(account);
   }
 
   /**
    * @dev Ban, from the blockchain and delete all data from the bubble
    */
   async banMember(account) {
-    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before banning");
-    return this.community.banMember(account);
-    // TODO: delete member's bubble data
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.banMember(account);
   }
 
   /**

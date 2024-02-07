@@ -167,6 +167,26 @@ export class Session {
   }
 
   /**
+   * @dev Deregister, from the blockchain and delete all data from the bubble
+   */
+  async deregisterMember(account) {
+    if (!this.isMemberAdmin) return Promise.reject('not an admin member');
+    if (!this.memberAdminBubble) return Promise.reject('internal error: member admin bubble has not yet been constructed');
+    return this.community.deregisterMember(account)
+    .then(() => this.memberAdminBubble.deleteMemberFile(account));
+  }
+
+  /**
+   * @dev Ban, from the blockchain and delete all data from the bubble
+   */
+  async banMember(account) {
+    if (!this.isMemberAdmin) return Promise.reject('not an admin member');
+    if (!this.memberAdminBubble) return Promise.reject('internal error: member admin bubble has not yet been constructed');
+    return this.community.banMember(account)
+    .then(() => this.memberAdminBubble.deleteMemberFile(account));
+  }
+
+  /**
    * @dev Refreshes the `isMember` state for the current wallet account
    */
   async _checkAccountIsMember() {
