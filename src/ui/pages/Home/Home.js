@@ -28,6 +28,8 @@ export function Home() {
   // Local state data
   const [rememberMe, setRememberMe] = useState(false);
 
+  const adminUserFileMissing = appError && appError.code === 'missing-admin-file';
+
   return (
     <>
         <div className="hero-section community-page">
@@ -55,7 +57,7 @@ export function Home() {
 
           {/* Failure Views */}
           {appState === 'new' && <p>Unexpected app state 'New'</p>}
-          {appState === 'failed' && <p>Failed to initialise app</p>}
+          {appState === 'failed' && !adminUserFileMissing && <p>Failed to initialise app</p>}
           {appState === 'initialised' && sessionState === 'logged-in' && <p>Unexpected initialised STATES</p>}
 
           {/* Connect View */}
@@ -83,7 +85,8 @@ export function Home() {
           }
 
           {/* Error log */}
-          {appError && <span className='error-text'>{formatError(appError)}</span>}
+          {appError && !adminUserFileMissing && <span className='error-text'>{formatError(appError)}</span>}
+          {adminUserFileMissing && <span>To complete your administrator setup, please send the following code to the community administrator:<br/><br/>{appError.publicKey}</span>}
 
         </div>
 

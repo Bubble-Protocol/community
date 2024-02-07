@@ -3,6 +3,8 @@ import { EventManager } from './utils/EventManager';
 import * as assert from './utils/assertions';
 import { AppError } from './utils/errors';
 import { ContractFunctionExecutionError } from 'viem';
+import Web3 from 'web3';
+import { toEthereumSignature } from '@bubble-protocol/client';
 
 const WALLET_STATE = {
   disconnected: 'disconnected',
@@ -163,6 +165,14 @@ export class Wallet {
       message: "Login to "+this.appName
     };
     return signMessage(params);
+  }
+
+  getSignFunction() {
+    return (hash) => {
+      hash = hash.slice(0,2) === '0x' ? hash.slice(2) : hash;
+      return signMessage({account: this.account, message: hash})
+        .then(toEthereumSignature);
+    }
   }
 
   _handleAccountsChanged(acc) {

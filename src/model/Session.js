@@ -7,6 +7,8 @@ import { ecdsa } from '@bubble-protocol/crypto';
 import { Key } from '@bubble-protocol/crypto/src/ecdsa';
 import { stateManager } from '../state-context';
 import { MemberBubble } from './bubbles/MemberBubble';
+import { MemberAdminBubble } from './bubbles/MemberAdminBubble';
+import { Delegation, toEthereumSignature } from '@bubble-protocol/client';
 
 /**
  * @dev Application state enum. @See the `state` property below.
@@ -90,7 +92,8 @@ export class Session {
   async initialise() {
     console.trace('Initialising session');
     stateManager.dispatch('isMember', false);
-    this._checkAccountIsMemberAdmin();
+    await this._checkAccountIsMemberAdmin();
+    if (this.isMemberAdmin && !this.adminDelegation) await this._obtainAdminDelegation ();
     await this._checkAccountIsMember();
     if (!this.isMember) this._checkAccountIsBanned();
     await this._refreshMemberState();
@@ -150,23 +153,6 @@ export class Session {
   }
 
   /**
-   * @dev Admin function. Deregister user both on the blockchain and from the bubble
-   */
-  async deregisterMember(account) {
-    await this.community.deregisterMember(account);
-    // await this.memberBubble.deleteData();
-    // TODO delete member's data
-  }
-
-  /**
-   * @dev Admin function. Ban user and delete their data from the bubble
-   */
-  async banMember(account) {
-    await this.community.banMember(account);
-    // TODO delete member's data
-  }
-
-  /**
    * @dev Update member data both on the blockchain and in the bubble
    */
   async updateMemberData(newData) {
@@ -210,10 +196,15 @@ export class Session {
    * member metadata
    */
   async _refreshMemberState() {
+    const promises = [];
     if (this.isMember && !this.memberBubble && this.state === STATES.loggedIn) {
-      this._getMemberPoints();
-      await this._constructMemberBubble();
+      promises.push(this._getMemberPoints());
+      promises.push(this._constructMemberBubble());
     }
+    if (this.isMemberAdmin && !this.memberAdminBubble && this.state === STATES.loggedIn) {
+      promises.push(this._constructMemberAdminBubble());
+    }
+    return Promise.all(promises);
   }
 
   /**
@@ -221,7 +212,6 @@ export class Session {
    * Saves a local copy of the member data in case of access problems.
    */
   async _constructMemberBubble() {
-    if (!this.isMember) return Promise.reject('not a member');
     this.memberBubble = new MemberBubble(this.bubbleConfig, this.account, this.loginKey);
     await this.memberBubble.initialise();
     if (!this.memberBubble.memberData && this.memberData) await this.memberBubble.setData(this.memberData);
@@ -232,6 +222,30 @@ export class Session {
     stateManager.dispatch('member-data', this.memberBubble.memberData);
   }
 
+  /**
+   * @dev Constructs the member admin bubble
+   */
+  async _constructMemberAdminBubble() {
+    this.memberAdminBubble = new MemberAdminBubble(this.bubbleConfig, this.account, this.loginKey, this.adminDelegation);
+    // await this.memberAdminBubble.create('<MEMBER_ADMIN_KEY>');  // remove leading '0x'
+    await this.memberAdminBubble.initialise();
+    // await this.memberAdminBubble.addAdminMember('<PUBLIC_KEY>');
+  }
+
+  /**
+   * @dev Requests the user to sign the admin delegation
+   */
+  async _obtainAdminDelegation() {
+    const delegation = new Delegation(this.loginKey.address, 'never');
+    delegation.permitAccessToBubble({...this.bubbleConfig.bubbleId, provider: this.bubbleConfig.bubbleId.provider.split('/')[2]});
+    await delegation.sign(this.wallet.getSignFunction());
+    this.adminDelegation = delegation;
+    this._saveState();
+  }
+
+  /**
+   * @dev gets the number of pre-governance tokens owned by this account
+   */
   async _getMemberPoints() {
     const points = await this.preGovToken.balanceOf(this.account);
     stateManager.dispatch('member-points', points);
@@ -250,6 +264,7 @@ export class Session {
     }
     catch(_){}
     this.memberData = stateData.memberData || {};
+    this.adminDelegation = stateData.adminDelegation;
     this._calculateState();
   }
 
@@ -260,7 +275,8 @@ export class Session {
     console.trace('saving session state');
     const stateData = {
       key: this.loginKey ? this.loginKey.privateKey : undefined,
-      memberData: this.memberData
+      memberData: this.memberData,
+      adminDelegation: this.adminDelegation
     };
     window.localStorage.setItem(this.id, JSON.stringify(stateData));
     this._calculateState();
