@@ -81,12 +81,12 @@
 .admin-dashboard .menu-item {
   font-size: 16px;
   font-weight: 500;
-  color: rgb(204, 91, 68);
+  color: #0139ab;
 }
 
 .admin-dashboard .menu-item.selected {
   font-weight: 700;
-  color: rgb(244, 42, 2);
+  color: #00256f;
 }
 
 .admin-dashboard .menu-item:hover {
@@ -117,14 +117,17 @@
 }
 
 .admin-dashboard .member.selected {
-  background-color: rgb(204, 91, 68);
-  color: white;
+  background-color: rgb(253, 253, 186);
 }
 
 .admin-dashboard .member.header-row {
   font-weight: 700;
   background-color: #4e76c8;
   color: white;
+}
+
+.admin-dashboard .member.header-row:hover {
+  cursor: inherit;
 }
 
 .admin-dashboard .member-list div {

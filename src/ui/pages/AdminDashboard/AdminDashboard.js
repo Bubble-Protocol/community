@@ -57,6 +57,7 @@ export function AdminDashboard() {
   }
 
   function setSelectedMemberTo(member) {
+    if (selectedMember === member) member = {};
     setSelectedMember(member);
     setAccount(member.account);
     setTwitter(member.twitter);
