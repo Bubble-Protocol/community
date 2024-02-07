@@ -8,7 +8,7 @@
 }
 
 .admin-dashboard .title-section {
-  text-align: center;
+  gap: 16px;
 }
 
 .admin-dashboard .page-title {
@@ -17,8 +17,12 @@
   font-size: 36px;
   font-style: normal;
   font-weight: 700;
-  line-height: 48px;
-  text-align: center;
+  line-height: 36px;
+  text-align: left;
+}
+
+.admin-dashboard .member-count {
+  font-size: 24px;
 }
 
 .admin-dashboard .warning {
@@ -34,7 +38,6 @@
 .admin-dashboard .section-link {
   color: #555;
   text-decoration: underline;
-  text-align: center;
 }
 
 .admin-dashboard .section-link:hover {

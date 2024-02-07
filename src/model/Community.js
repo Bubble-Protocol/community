@@ -15,17 +15,18 @@ export class Community {
   constructor(config, wallet) {
     this.wallet = wallet;
     this.contract = config.contract;
-    stateManager.register('communityStats', {...this.blockchainStats});
+    stateManager.register('community-stats', {...this.blockchainStats});
     this.register = this.register.bind(this);
   }
 
   initialise() {
-    this.getMemberCount();
+    this._getMemberCount();
   }
 
   async _getMemberCount() {
-    return this.wallet.call(this.contract.address, this.contract.abi, 'memberCount')
-    .then(count => this._setBlockchainStat('memberCount', count));
+    return this.wallet.call(this.contract.address, this.contract.abi, 'getMemberCount')
+    .then(count => this._setBlockchainStat('memberCount', count))
+    .catch(console.warn);
   }
 
   async isMember(account) {
@@ -77,7 +78,7 @@ export class Community {
 
   _setBlockchainStat(stat, value) {
     this.blockchainStats[stat] = value;
-    stateManager.dispatch('communityStats', {...this.blockchainStats});
+    stateManager.dispatch('community-stats', {...this.blockchainStats});
     return value;
   }
 }

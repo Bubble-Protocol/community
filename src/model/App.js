@@ -164,7 +164,10 @@ export class CommunityApp {
    */
   _accountChanged(account) {
     this._closeSession();
-    if (account) this._openSession(account);
+    if (account) {
+      this.community.initialise();
+      this._openSession(account);
+    }
     else this._setState(STATES.closed);
   }
 
