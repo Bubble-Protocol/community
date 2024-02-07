@@ -8,6 +8,7 @@ import { Wallet } from './Wallet';
 import { Session } from './Session';
 import { polygon } from 'wagmi/chains';
 import { Community } from './Community';
+import { PreGovernanceToken } from './PreGovernanceToken';
 
 /**
  * @dev Application state enum. @See the `state` property below.
@@ -55,6 +56,11 @@ export class CommunityApp {
   community;
 
   /**
+   * @dev Interface to the BubblePreGovernanceToken smart contract.
+   */
+  token;
+
+  /**
    * @dev Constructs the RainbowKit wallet handler and sets up the initial UI state.
    */
   constructor() {
@@ -63,7 +69,10 @@ export class CommunityApp {
     this.wallet.on('account-changed', this._accountChanged.bind(this));
 
     // Construct the Community
-    this.community = new Community(DEFAULT_CONFIG, this.wallet);
+    this.community = new Community(DEFAULT_CONFIG.community, this.wallet);
+
+    // Construct the Pre-Governance Token
+    this.token = new PreGovernanceToken(DEFAULT_CONFIG.preGovToken, this.wallet);
 
     // Register UI state data
     stateManager.register('state', this.state);
@@ -72,6 +81,7 @@ export class CommunityApp {
     stateManager.register('isBanned', false);
     stateManager.register('isMemberAdmin', false);
     stateManager.register('member-data', {});
+    stateManager.register('member-points', 0);
     stateManager.register('error');
 
     // Register UI functions
@@ -163,7 +173,7 @@ export class CommunityApp {
    * any existing session first, clearing the UI state.
    */
   _openSession(account) {
-    this.session = new Session(DEFAULT_CONFIG, account, this.wallet, this.community);
+    this.session = new Session(DEFAULT_CONFIG, account, this.wallet, this.community, this.token);
     this._initialiseSession();
   }
 

@@ -72,3 +72,13 @@
   flex-direction: column;
   gap: 24px;
 }
+
+.dashboard .points {
+  color: #000;
+  font-family: Poppins;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 30px;
+  text-align: center;
+}

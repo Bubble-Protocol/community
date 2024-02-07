@@ -15,6 +15,7 @@ export function Dashboard() {
   const { logout } = stateManager.useStateData('wallet-functions')();
   const { updateData, deregister } = stateManager.useStateData('community-functions')();
   const memberData = stateManager.useStateData('member-data')();
+  const points = stateManager.useStateData('member-points')();
 
   // Local state data
   const [registering, setRegistering] = useState(false);
@@ -48,6 +49,10 @@ export function Dashboard() {
           Welcome to your Bubble Community dashboard.
           From here you can manage your account and access all our exclusive member-only benefits.
         </p>
+      </div>
+
+      <div className="page-width-section center">
+        <span className="points">Your Points: {'' + points}</span>
       </div>
 
       <div className="page-width-section center">

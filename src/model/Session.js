@@ -52,29 +52,32 @@ export class Session {
   /**
    * @dev Constructs this Session from the locally saved state.
    */
-  constructor(config, account, wallet, community) {
+  constructor(config, account, wallet, community, token) {
     console.trace('Constructing session');
     assert.isString(config.appId, 'config.appId');
-    assert.isObject(config.contract, 'config.contract');
-    assert.isNumber(config.contract.chain, 'config.contract.chain');
-    ecdsa.assert.isAddress(config.contract.address, 'config.contract.address');
-    assert.isObject(config.bubble, 'config.bubble');
-    assert.isString(config.bubble.provider, 'config.bubble.provider');
-    assert.isHexString(config.bubble.adminPublicKey, 'config.bubble.adminPublicKey');
+    assert.isObject(config.community, 'config.contract');
+    assert.isObject(config.community.contract, 'config.contract');
+    assert.isNumber(config.community.contract.chain, 'config.contract.chain');
+    ecdsa.assert.isAddress(config.community.contract.address, 'config.contract.address');
+    assert.isObject(config.community.bubble, 'config.bubble');
+    assert.isString(config.community.bubble.provider, 'config.bubble.provider');
+    assert.isHexString(config.community.bubble.adminPublicKey, 'config.bubble.adminPublicKey');
     ecdsa.assert.isAddress(account, 'account');
     assert.isObject(wallet, 'wallet');
     assert.isObject(community, 'community');
-    this.id = config.appId+'-'+config.contract.chain+'-'+account.slice(2).toLowerCase();
+    assert.isObject(token, 'token');
+    this.id = config.appId+'-'+config.community.contract.chain+'-'+account.slice(2).toLowerCase();
     console.trace('session id:', this.id);
     this.account = account;
     this.wallet = wallet;
     this.community = community;
+    this.preGovToken = token;
     this.bubbleConfig = {
-      adminPublicKey: config.bubble.adminPublicKey,
+      adminPublicKey: config.community.bubble.adminPublicKey,
       bubbleId: {
-        chain: config.contract.chain,
-        contract: config.contract.address,
-        provider: config.bubble.provider
+        chain: config.community.contract.chain,
+        contract: config.community.contract.address,
+        provider: config.community.bubble.provider
       }
     }
     this._loadState();
@@ -90,7 +93,7 @@ export class Session {
     this._checkAccountIsMemberAdmin();
     await this._checkAccountIsMember();
     if (!this.isMember) this._checkAccountIsBanned();
-    await this._refreshBubbles();
+    await this._refreshMemberState();
     console.trace('Session initialised');
   }
 
@@ -105,7 +108,7 @@ export class Session {
       this.loginKey = new Key(ecdsa.hash(signature));
       if (rememberMe) this._saveState();
       else this._calculateState();
-      return this._refreshBubbles();
+      return this._refreshMemberState();
     })
   }
 
@@ -128,7 +131,7 @@ export class Session {
     this._saveState();
     return this.community.register(this.loginKey.address, details)
       .then(this._checkAccountIsMember.bind(this))
-      .then(this._refreshBubbles.bind(this))
+      .then(this._refreshMemberState.bind(this))
       .then(() => {
         if (this.isMember && this.memberBubble) return this.memberBubble.setData(details);
       });
@@ -203,10 +206,12 @@ export class Session {
   }
 
   /**
-   * @dev Constructs any bubbles that can now be constructed
+   * @dev If a member and logged in, constructs the member bubble and fetches other 
+   * member metadata
    */
-  async _refreshBubbles() {
+  async _refreshMemberState() {
     if (this.isMember && !this.memberBubble && this.state === STATES.loggedIn) {
+      this._getMemberPoints();
       await this._constructMemberBubble();
     }
   }
@@ -225,6 +230,12 @@ export class Session {
       this._saveState();
     }
     stateManager.dispatch('member-data', this.memberBubble.memberData);
+  }
+
+  async _getMemberPoints() {
+    const points = await this.preGovToken.balanceOf(this.account);
+    stateManager.dispatch('member-points', points);
+    return points;
   }
   
   /**
