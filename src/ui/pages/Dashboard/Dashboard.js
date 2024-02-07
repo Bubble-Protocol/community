@@ -52,7 +52,10 @@ export function Dashboard() {
       </div>
 
       <div className="page-width-section center">
-        <span className="points">Your Points: {'' + points}</span>
+        <div className="points-column">
+          <span className="points">Your Points: {'' + points}</span>
+          <a className="small-link" href="https://polygonscan.com/token/0xe286aB9a1F8362c155b6aaDC7Ad7F40F4bF7115f#balances" target="_blank">leaderboard</a>
+        </div>
       </div>
 
       <div className="page-width-section center">

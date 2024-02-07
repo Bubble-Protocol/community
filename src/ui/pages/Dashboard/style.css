@@ -82,3 +82,15 @@
   line-height: 30px;
   text-align: center;
 }
+
+.dashboard .points-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.dashboard .small-link {
+  text-decoration: underline;
+  color: #aa0;
+}
