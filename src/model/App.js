@@ -96,6 +96,10 @@ export class CommunityApp {
       banMember: this.banMember.bind(this),
       updateData: this.updateMemberData.bind(this)
     });
+    stateManager.register('token-functions', {
+      mint: this.mintTokens.bind(this),
+      batchMint: this.batchMintTokens.bind(this)
+    });
   }
 
   /**
@@ -137,8 +141,8 @@ export class CommunityApp {
    */
   async deregisterMember(account) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before deregistering");
-    if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.deregisterMember(account);
+    return this.community.deregisterMember(account);
+    // TODO: delete member's bubble data
   }
 
   /**
@@ -146,8 +150,8 @@ export class CommunityApp {
    */
   async banMember(account) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before banning");
-    if (!this.session) return Promise.reject("internal error: session is missing");
-    return this.session.banMember(account);
+    return this.community.banMember(account);
+    // TODO: delete member's bubble data
   }
 
   /**
@@ -157,6 +161,22 @@ export class CommunityApp {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
     if (!this.session) return Promise.reject("internal error: session is missing");
     return this.session.updateMemberData(details);
+  }
+
+  /**
+   * @dev mint a given number of tokens for a given member
+   */
+  async mintTokens(account, amount) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
+    return this.token.mint(account, amount);
+  }
+
+  /**
+   * @dev mint tokens for multiple members
+   */
+  async batchMintTokens(batch) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
+    return this.token.batchMint(batch);
   }
 
   /**
