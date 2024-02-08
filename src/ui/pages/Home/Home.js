@@ -30,6 +30,11 @@ export function Home() {
 
   const adminUserFileMissing = appError && appError.code === 'missing-admin-file';
 
+  function loginUser() {
+    login(rememberMe)
+    .catch(console.warn);
+  }
+
   return (
     <>
         <div className="hero-section community-page">
@@ -75,7 +80,7 @@ export function Home() {
           {/* Login View */}
           {appState === 'initialised' && sessionState !== 'logged-in' &&
             <div className="button-row">
-              <div className="cta-button-solid" onClick={() => login(rememberMe)}>Login</div>
+              <div className="cta-button-solid" onClick={loginUser}>Login</div>
               <div className="selector">
                 <CheckBox selected={rememberMe} setSelected={setRememberMe} />
                 <span>Remember Me</span>
