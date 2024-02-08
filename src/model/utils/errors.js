@@ -4,7 +4,8 @@ export class AppError extends Error {
     super(message);
     Object.assign(this, properties);
     this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
+    // non-V8 browsers don't have captureStackTrace
+    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor);
   }
 
 }
