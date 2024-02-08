@@ -23,6 +23,7 @@ export class MemberAdminBubble {
     const userManager = new userManagers.MultiUserManager(loginKey, MEMBER_ADMIN_DIR+'/'+account);
     this.bubble = new Bubble(config.bubbleId, provider, signFunction, encryptionPolicy, userManager);
     this.loginKey = loginKey;
+    this.account = account;
   }
 
   async create(initialAdminPrivateKey) {
@@ -42,9 +43,10 @@ export class MemberAdminBubble {
     this.refreshAllMembers();
   }
 
-  async addAdminMember(publicKey) {
+  async addAdminMember(account, publicKey) {
+    console.trace('adding member with public key:', publicKey)
     const address = publicKeyToAddress(publicKey);
-    this.bubble.userManager.addUser({publicKey, metadataFile: MEMBER_ADMIN_DIR+'/'+address});
+    await this.bubble.userManager.addUser({publicKey, metadataFile: MEMBER_ADMIN_DIR+'/'+account});
   }
 
   async refreshAllMembers() {

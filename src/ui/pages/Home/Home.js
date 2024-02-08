@@ -27,13 +27,19 @@ export function Home() {
 
   // Local state data
   const [rememberMe, setRememberMe] = useState(false);
-
-  const adminUserFileMissing = appError && appError.code === 'missing-admin-file';
+  const [localError, setLocalError] = useState(false);
 
   function loginUser() {
+    setLocalError();
     login(rememberMe)
-    .catch(console.warn);
+    .catch(error => {
+      console.warn(error);
+      setLocalError(error);
+    });
   }
+
+  const error = localError || appError;
+  const adminUserFileMissing = error && error.code === 'missing-admin-file';
 
   return (
     <>
@@ -89,8 +95,8 @@ export function Home() {
           }
 
           {/* Error log */}
-          {appError && !adminUserFileMissing && <span className='error-text'>{formatError(appError)}</span>}
-          {adminUserFileMissing && <span>To complete your administrator setup, please send the following code to the community administrator:<br/><br/>{appError.publicKey}</span>}
+          {error && !adminUserFileMissing && <span className='error-text'>{formatError(error)}</span>}
+          {adminUserFileMissing && <span>To complete your administrator setup, please send the following code to the community administrator:<br/><br/>{error.publicKey}</span>}
 
         </div>
 

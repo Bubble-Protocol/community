@@ -108,7 +108,14 @@ export class CommunityApp {
    */
   async login(...args) {
     if (!this.session) return Promise.reject('Connect wallet before logging in');
-    return this.session.login(...args);
+    return this.session.login(...args)
+    .catch(error => {
+      if (error && error.code === 'missing-admin-file') {
+        this._setState(STATES.failed);
+        stateManager.dispatch('error', error)
+      }
+      else throw(error);
+    })
   }
 
   /**

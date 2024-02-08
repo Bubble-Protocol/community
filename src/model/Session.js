@@ -8,7 +8,7 @@ import { Key } from '@bubble-protocol/crypto/src/ecdsa';
 import { stateManager } from '../state-context';
 import { MemberBubble } from './bubbles/MemberBubble';
 import { MemberAdminBubble } from './bubbles/MemberAdminBubble';
-import { Delegation, toEthereumSignature } from '@bubble-protocol/client';
+import { Delegation } from '@bubble-protocol/client';
 
 /**
  * @dev Application state enum. @See the `state` property below.
@@ -93,7 +93,6 @@ export class Session {
     console.trace('Initialising session');
     stateManager.dispatch('isMember', false);
     await this._checkAccountIsMemberAdmin();
-    if (this.isMemberAdmin && !this.adminDelegation) await this._obtainAdminDelegation ();
     await this._checkAccountIsMember();
     if (!this.isMember) this._checkAccountIsBanned();
     await this._refreshMemberState();
@@ -216,6 +215,7 @@ export class Session {
    * member metadata
    */
   async _refreshMemberState() {
+    if (this.isMemberAdmin && !this.adminDelegation && this.state === STATES.loggedIn) await this._obtainAdminDelegation ();
     const promises = [];
     if (this.isMember && !this.memberBubble && this.state === STATES.loggedIn) {
       promises.push(this._getMemberPoints());
