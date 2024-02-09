@@ -112,8 +112,8 @@
   cursor: pointer;
 }
 
-.admin-dashboard .member:nth-child(2) {
-  background-color: #e4effb;
+.admin-dashboard .member:nth-child(odd) {
+  background-color: #eaf2fa;
 }
 
 .admin-dashboard .member.selected {
