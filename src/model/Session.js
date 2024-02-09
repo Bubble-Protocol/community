@@ -132,6 +132,7 @@ export class Session {
     this.memberData = details;
     this._saveState();
     return this.community.register(this.loginKey.address, details)
+      .then(validatedDetails => details = {...details, ...validatedDetails})
       .then(this._checkAccountIsMember.bind(this))
       .then(this._refreshMemberState.bind(this))
       .then(() => {

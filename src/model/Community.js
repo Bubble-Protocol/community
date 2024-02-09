@@ -1,6 +1,7 @@
 import { assert } from "@bubble-protocol/client";
 import { keccak256 } from "viem";
 import { stateManager } from "../state-context";
+import { extractUsername } from "../common/utils/social-utils";
 
 const MEMBER_ADMIN_ROLE = '0x5160d718b3cafa04f8d51bbd7b6f2828ba2c83e2c57f3ca11850ce45d05be042';
 const NULL_SOCIAL = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -45,10 +46,12 @@ export class Community {
     const account = this.wallet.account;
     console.log("registering user:", account, details);
     assert.isObject(details, 'details');
-    const socialHashes = constructRegistrationSocials(details);
+    const {validatedDetails, socialHashes} = constructRegistrationSocials(details);
     console.log("registering on blockchain:", account, socialHashes);
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes])
-    .then(this._getMemberCount.bind(this));
+    .then(this._getMemberCount.bind(this))
+    .then(() => { return validatedDetails });
+
   }
 
   async deregister(account) {
@@ -89,32 +92,34 @@ export class Community {
 
 function validateSocials(details) {
   const results = {};
-  ['twitter', 'discord', 'telegram'].forEach(social => {
-    const value = details[social] ? details[social].trim() : undefined;
-    if (value && value.length > 0) results[social] = value;
-  })
+  const twitter = extractUsername(details.twitter, "https://twitter.com");
+  const discord = extractUsername(details.discord);
+  const telegram = extractUsername(details.telegram);
+  if (twitter) results.twitter = twitter;
+  if (discord) results.discord = discord;
+  if (telegram) results.telegram = telegram;
   return results;
 }
 
 function constructRegistrationSocials(details) {
-  const trimmedDetails = validateSocials(details);
-  if (!trimmedDetails.twitter) throw new Error('missing twitter username');
-  if (!trimmedDetails.discord) throw new Error('missing discord username');
-  if (!trimmedDetails.telegram) throw new Error('missing telegram username');
+  const validatedDetails = validateSocials(details);
+  if (!validatedDetails.twitter) throw new Error('missing twitter username');
+  if (!validatedDetails.discord) throw new Error('missing discord username');
+  if (!validatedDetails.telegram) throw new Error('missing telegram username');
   const socialHashes = [];
   ['twitter', 'discord', 'telegram'].forEach(social => {
-    socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+trimmedDetails[social].toLowerCase()));
+    socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+validatedDetails[social].toLowerCase()));
   })
   socialHashes.push(NULL_SOCIAL);
   socialHashes.push(NULL_SOCIAL);
-  return socialHashes;
+  return {validatedDetails, socialHashes};
 }
 
 function constructUnbanSocials(details) {
-  const trimmedDetails = validateSocials(details);
+  const validatedDetails = validateSocials(details);
   const socialHashes = [];
   ['twitter', 'discord', 'telegram'].forEach(social => {
-    if (trimmedDetails[social]) socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+trimmedDetails[social].toLowerCase()));
+    if (validatedDetails[social]) socialHashes.push(keccak256(process.env.REACT_APP_SOCIAL_ENCRYPTION_SALT+':'+social+':'+validatedDetails[social].toLowerCase()));
   })
   return socialHashes;
 }
