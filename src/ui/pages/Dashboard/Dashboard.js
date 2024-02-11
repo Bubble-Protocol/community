@@ -2,40 +2,56 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import './style.css';
 import { SocialsForm } from "../Registration/components/SocialsForm";
 import { stateManager } from "../../../state-context";
-
+import rehideNftImage from "../../images/rehide-nft-image.png";
 
 export function Dashboard() {
 
   // Model state data
   const appError = stateManager.useStateData('error')();
   const { logout } = stateManager.useStateData('wallet-functions')();
-  const { updateData, deregister } = stateManager.useStateData('community-functions')();
+  const { updateData, deregister, mintNft, hasNft } = stateManager.useStateData('community-functions')();
   const memberData = stateManager.useStateData('member-data')();
   const points = stateManager.useStateData('member-points')();
 
   // Local state data
   const [registering, setRegistering] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [registerError, setRegisterError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState();
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [ownsNft, setOwnsNft] = useState(false);
+
+  useEffect(() => {
+    hasNft('0x35d0d209A821AB63665016e1229aba16f52906AB')
+    .then(setOwnsNft)
+    .catch(console.warn);
+  }, []);
 
   function updateUser(data) {
     setRegistering(true);
     updateData(data)
-    .catch(setRegisterError)
+    .catch(setError)
     .finally(() => setRegistering(false));
   }
 
   function deleteAccount() {
-    setDeleting(true);
+    setBusy(true);
     deregister()
-    .catch(setRegisterError)
-    .finally(() => setDeleting(false));
+    .catch(setError)
+    .finally(() => setBusy(false));
+  }
+
+  function mint(address) {
+    setBusy(true);
+    mintNft(address)
+    .then(() => hasNft(address))
+    .then(setOwnsNft)
+    .catch(setError)
+    .finally(() => setBusy(false));
   }
 
   return (
@@ -59,7 +75,9 @@ export function Dashboard() {
       </div>
 
       <div className="page-width-section center">
-        <span className="community-notice">Check back here regularly for exclusive member-only events!</span>
+        <span className="points">Your NFTs</span>
+        {!ownsNft && <div className="community-link" onClick={() => mint('0x35d0d209A821AB63665016e1229aba16f52906AB')}>Claim your Bubble / Rehide Partnership NFT!</div>}
+        {ownsNft && <a href="https://polygonscan.com/address/0x35d0d209A821AB63665016e1229aba16f52906AB"><img className="nft-image" src={rehideNftImage} alt="rehide-nft"></img></a>}
       </div>
 
       {!detailsVisible && <div className="section-link" onClick={() => setDetailsVisible(true)}>Manage Your Account</div>}
@@ -78,9 +96,9 @@ export function Dashboard() {
             Your data will never be shared with anyone.
           </p>
 
-          <SocialsForm buttonText="Update" onRegister={updateUser} registering={registering} initialValues={memberData} connectButton={false} registerButton={!confirmDelete && !deleting} />
+          <SocialsForm buttonText="Update" onRegister={updateUser} registering={registering} initialValues={memberData} connectButton={false} registerButton={!confirmDelete && !busy} />
 
-          {confirmDelete && !deleting &&
+          {confirmDelete && !busy &&
 
             <div className="warning">
               <p>Are you sure?</p>
@@ -92,18 +110,18 @@ export function Dashboard() {
               <div className="section-link" onClick={() => setConfirmDelete(false)}>Cancel</div>
             </div>
           }
-          {!confirmDelete && !deleting && <div className="delete-link" onClick={() => setConfirmDelete(true)}>Delete Your Account</div>}
-          {deleting && <div className="loader small"></div>}
+          {!confirmDelete && !busy && <div className="delete-link" onClick={() => setConfirmDelete(true)}>Delete Your Account</div>}
+          {busy && <div className="loader small"></div>}
 
           {/* Error log */}
           {appError && <span className='error-text center'>Error!<br/>{formatError(appError)}</span>}
-          {registerError && <span className='error-text center'>Registration Failed!<br/>{formatError(registerError)}</span>}
+          {error && <span className='error-text center'>{formatError(error)}</span>}
 
         </div>
       }
 
       <div className="page-width-section">
-      {!confirmDelete && !deleting && !registering && <div className="section-link" onClick={logout}>Logout</div>}
+      {!confirmDelete && !busy && !registering && <div className="section-link" onClick={logout}>Logout</div>}
       </div>
 
     </div>

@@ -187,6 +187,22 @@ export class Session {
   }
 
   /**
+   * @dev Mint an NFT
+   */
+  async mintNft(address) {
+    if (this.state !== STATES.loggedIn) return Promise.reject("Log in before minting");
+    return this.community.mintNft(address);
+  }
+
+  /**
+   * @dev return true if current wallet account owns the given BubbleCommunityNFT
+   */
+  async hasNft(address) {
+    if (this.state !== STATES.loggedIn) return Promise.reject("Log in before minting");
+    return this.community.hasNft(address, this.account);
+  }
+
+  /**
    * @dev Refreshes the `isMember` state for the current wallet account
    */
   async _checkAccountIsMember() {

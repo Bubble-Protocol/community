@@ -3,7 +3,7 @@
 pragma solidity 0.8.24;
 
 import {BubbleCommunityImplementation, IMemberRegistry} from "../BubbleCommunity.sol";
-import {BubbleReferralAToken} from "../tokens/BubbleReferralAToken.sol";
+import {BubbleCommunityNFT} from "../tokens/BubbleCommunityNFT.sol";
 import {BubblePreGovernanceToken, Mint} from "../tokens/BubblePreGovernanceToken.sol";
 
 uint constant TEST_MAX_SOCIALS = 5;
@@ -93,27 +93,31 @@ contract CommunityUser {
       tokenContract.close();
     }
 
-    function mintNft(BubbleReferralAToken nftContract, address member) public returns (uint256) {
+    function mintNft(BubbleCommunityNFT nftContract) public returns (uint256) {
+      return nftContract.mint();
+    }
+
+    function mintNft(BubbleCommunityNFT nftContract, address member) public returns (uint256) {
       return nftContract.mint(member);
     }
 
-    function mintBatchNft(BubbleReferralAToken nftContract, address[] memory members) public returns (uint256) {
+    function mintBatchNft(BubbleCommunityNFT nftContract, address[] memory members) public returns (uint256) {
       return nftContract.mintBatch(members);
     }
 
-    function closeNft(BubbleReferralAToken nftContract) public {
+    function closeNft(BubbleCommunityNFT nftContract) public {
       nftContract.close();
     }
 
-    function transferFrom(BubbleReferralAToken nftContract, address from, address to, uint256 tokenId) public {
+    function transferFrom(BubbleCommunityNFT nftContract, address from, address to, uint256 tokenId) public {
       nftContract.transferFrom(from, to, tokenId);
     }
 
-    function approve(BubbleReferralAToken nftContract, address to, uint256 tokenId) public {
+    function approve(BubbleCommunityNFT nftContract, address to, uint256 tokenId) public {
       nftContract.approve(to, tokenId);
     }
 
-    function setApprovalForAll(BubbleReferralAToken nftContract, address operator, bool approved) public {
+    function setApprovalForAll(BubbleCommunityNFT nftContract, address operator, bool approved) public {
       nftContract.setApprovalForAll(operator, approved);
     }
 
@@ -125,4 +129,13 @@ contract CommunityUser {
         return fixedArray;
     }
 
+    function onERC721Received(
+        address /*operator*/,
+        address /*from*/,
+        uint256 /*tokenId*/,
+        bytes calldata /*data*/
+    ) external returns (bytes4) {
+      return this.onERC721Received.selector;
+    }
+    
 }

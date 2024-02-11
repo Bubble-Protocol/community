@@ -2,6 +2,7 @@ import { assert } from "@bubble-protocol/client";
 import { keccak256 } from "viem";
 import { stateManager } from "../state-context";
 import { extractUsername } from "../common/utils/social-utils";
+import { ecdsa } from "@bubble-protocol/crypto";
 
 const MEMBER_ADMIN_ROLE = '0x5160d718b3cafa04f8d51bbd7b6f2828ba2c83e2c57f3ca11850ce45d05be042';
 const NULL_SOCIAL = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -16,6 +17,7 @@ export class Community {
   constructor(config, wallet) {
     this.wallet = wallet;
     this.contract = config.contract;
+    this.nftContract = config.nftContract;
     stateManager.register('community-stats', {...this.blockchainStats});
     this.register = this.register.bind(this);
   }
@@ -80,6 +82,20 @@ export class Community {
     if (newSocialHashes.length === 0) return Promise.resolve();
     console.log("unbanning socials:", newSocialHashes);
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'unbanSocials', [newSocialHashes]);
+  }
+
+  async hasNft(address, account) {
+    ecdsa.assert.isAddress(address, 'address');
+    ecdsa.assert.isAddress(account, 'account');
+    console.log('checking balance of', account, 'with nft at', address);
+    return this.wallet.call(address, this.nftContract.abi, 'balanceOf', [account])
+    .then(balance => balance > 0)
+  }
+
+  async mintNft(address) {
+    ecdsa.assert.isAddress(address, 'address');
+    console.log('minting nft at address', address);
+    return this.wallet.estimateAndSend(address, this.nftContract.abi, 'mint');
   }
 
   _setBlockchainStat(stat, value) {

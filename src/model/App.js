@@ -95,7 +95,9 @@ export class CommunityApp {
       deregister: this.deregister.bind(this),
       deregisterMember: this.deregisterMember.bind(this),
       banMember: this.banMember.bind(this),
-      updateData: this.updateMemberData.bind(this)
+      updateData: this.updateMemberData.bind(this),
+      mintNft: this.mintNft.bind(this),
+      hasNft: this.hasNft.bind(this)
     });
     stateManager.register('token-functions', {
       mint: this.mintTokens.bind(this),
@@ -185,6 +187,24 @@ export class CommunityApp {
   async batchMintTokens(batch) {
     if (!this.state == STATES.loggedIn) return Promise.reject("Log in before updating");
     return this.token.batchMint(batch);
+  }
+
+  /**
+   * @dev Mint a BubbleCommunityNFT with the given contract address
+   */
+  async mintNft(address) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before registering");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.mintNft(address);
+  }
+
+  /**
+   * @dev return true if current wallet account owns the given BubbleCommunityNFT
+   */
+  async hasNft(address) {
+    if (!this.state == STATES.loggedIn) return Promise.reject("Log in before registering");
+    if (!this.session) return Promise.reject("internal error: session is missing");
+    return this.session.hasNft(address);
   }
 
   /**
