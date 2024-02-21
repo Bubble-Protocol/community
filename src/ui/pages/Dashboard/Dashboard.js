@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import './style.css';
 import { SocialsForm } from "../Registration/components/SocialsForm";
 import { stateManager } from "../../../state-context";
@@ -24,6 +24,7 @@ export function Dashboard() {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ownsNft, setOwnsNft] = useState(false);
+  let errorTimer;
 
   useEffect(() => {
     hasNft('0x35d0d209A821AB63665016e1229aba16f52906AB')
@@ -32,8 +33,12 @@ export function Dashboard() {
   }, []);
 
   function setError(error) {
+    if (errorTimer) {
+      clearTimeout(errorTimer);
+      errorTimer = null;
+    }
     setLocalError(error);
-    setTimeout(() => setError(undefined), 5000);
+    errorTimer = setTimeout(() => setLocalError(undefined), 5000);
   }
 
   function updateUser(data) {
@@ -72,6 +77,8 @@ export function Dashboard() {
         </p>
       </div>
 
+      <div className="divider"></div>
+
       <div className="page-width-section center">
         <div className="points-column">
           <span className="points">Your Points: {'' + points}</span>
@@ -81,18 +88,16 @@ export function Dashboard() {
 
       <div className="page-width-section center">
         <span className="points">Your NFTs</span>
-        {!ownsNft && <div className="community-link" onClick={() => mint('0x35d0d209A821AB63665016e1229aba16f52906AB')}>Claim your Bubble / Rehide Partnership NFT!</div>}
+        {!ownsNft && <div className="community-link" onClick={() => !busy && mint('0x35d0d209A821AB63665016e1229aba16f52906AB')}>Claim your Bubble / Rehide Partnership NFT!</div>}
         {ownsNft && <a href="https://polygonscan.com/address/0x35d0d209A821AB63665016e1229aba16f52906AB"><img className="nft-image" src={rehideNftImage} alt="rehide-nft"></img></a>}
       </div>
 
-      {!detailsVisible && <div className="section-link" onClick={() => setDetailsVisible(true)}>Manage Your Account</div>}
+      <div className="divider"></div>
 
       {detailsVisible && 
         <div className="page-width-section">
 
-          <div className="section-link" onClick={() => setDetailsVisible(false)}>Hide</div>
-
-          <span className="section-title">Your Details</span>
+          <span className="section-title">Your Account</span>
 
           <p className="disclaimer">
             Your data is encrypted and stored securely in an off-chain bubble on the Bubble Private Cloud. 
@@ -109,25 +114,33 @@ export function Dashboard() {
               <p>Are you sure?</p>
               <p>
                 If you delete your account you won't be eligible for any more community rewards.
-                Any existing community NFTs you have earned until now are safe but you won't be able to claim any future NFTs.
+                Any points and NFTs you have earned up to now are safe but you won't be able to claim any future points or NFTs.
               </p>
               <div className="delete-link" onClick={deleteAccount}>YES, DELETE MY ACCOUNT</div>
               <div className="section-link" onClick={() => setConfirmDelete(false)}>Cancel</div>
             </div>
           }
           {!confirmDelete && !busy && <div className="delete-link" onClick={() => setConfirmDelete(true)}>Delete Your Account</div>}
-          {busy && <div className="loader small"></div>}
 
         </div>
       }
 
       <div className="page-width-section">
+        {/* Logout */}
+        {!localError && !confirmDelete && !busy && !registering && 
+          <div className="account-links">
+            <div className="section-link" onClick={() => setDetailsVisible(!detailsVisible)}>{detailsVisible ? "Hide Your Account" : "Manage Your Account"}</div>
+            <div className="section-link" onClick={logout}>Logout</div>
+          </div>
+        }
+
+        {/* Loader */}
+        {busy && <div className="loader small"></div>}
+
         {/* Error log */}
         {appError && <span className='error-text center'>Error!<br/>{formatError(appError)}</span>}
-        {localError && <span className='error-text center'>{formatError(localError)}</span>}
+        {!busy && localError && <span className='error-text center'>{formatError(localError)}</span>}
 
-        {/* Logout */}
-        {!localError && !confirmDelete && !busy && !registering && <div className="section-link" onClick={logout}>Logout</div>}
       </div>
 
     </div>
