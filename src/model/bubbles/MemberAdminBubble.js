@@ -88,7 +88,7 @@ export class MemberAdminBubble {
   }
 
   /**
-   * @dev Loads the admin bubble state from localStorage
+   * @dev Loads the admin bubble state from the bubble's encrypted member admin directory
    */
   async _loadState() {
     const stateJSON = await this.bubble.read(toFileId(MEMBER_ADMIN_DIR, 'state'), {silent: true});
@@ -99,7 +99,7 @@ export class MemberAdminBubble {
   }
 
   /**
-   * @dev Saves the admin bubble state to localStorage
+   * @dev Saves the admin bubble state to the bubble's encrypted member admin directory
    */
   async _saveState() {
     console.trace('saving admin bubble state');
