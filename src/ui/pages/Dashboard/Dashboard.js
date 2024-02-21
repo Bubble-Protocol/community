@@ -20,7 +20,7 @@ export function Dashboard() {
   // Local state data
   const [registering, setRegistering] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState();
+  const [localError, setLocalError] = useState();
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ownsNft, setOwnsNft] = useState(false);
@@ -30,6 +30,11 @@ export function Dashboard() {
     .then(setOwnsNft)
     .catch(console.warn);
   }, []);
+
+  function setError(error) {
+    setLocalError(error);
+    setTimeout(() => setError(undefined), 5000);
+  }
 
   function updateUser(data) {
     setRegistering(true);
@@ -113,15 +118,16 @@ export function Dashboard() {
           {!confirmDelete && !busy && <div className="delete-link" onClick={() => setConfirmDelete(true)}>Delete Your Account</div>}
           {busy && <div className="loader small"></div>}
 
-          {/* Error log */}
-          {appError && <span className='error-text center'>Error!<br/>{formatError(appError)}</span>}
-          {error && <span className='error-text center'>{formatError(error)}</span>}
-
         </div>
       }
 
       <div className="page-width-section">
-      {!confirmDelete && !busy && !registering && <div className="section-link" onClick={logout}>Logout</div>}
+        {/* Error log */}
+        {appError && <span className='error-text center'>Error!<br/>{formatError(appError)}</span>}
+        {localError && <span className='error-text center'>{formatError(localError)}</span>}
+
+        {/* Logout */}
+        {!localError && !confirmDelete && !busy && !registering && <div className="section-link" onClick={logout}>Logout</div>}
       </div>
 
     </div>
@@ -132,6 +138,8 @@ export function Dashboard() {
 
 function formatError(error) {
   if (error.code === 'username-registered') return "One of your usernames has already been registered to a different user";
+  if (error.cause && error.cause.code === 4001) return "User rejected";
+  if (error.cause && error.cause.code === -32603) return <span>Your wallet failed to send the transaction. Please try again.<br/>({error.details})</span>;
   return error.details || error.message || error;
 }
 
