@@ -5,10 +5,8 @@
 import React, { useState } from "react";
 import './style.css';
 import { stateManager } from "../../../state-context";
-import { validateUsername } from "../../../common/utils/social-utils";
 import { TextBox } from "../../components/TextBox/TextBox";
 import { ecdsa } from "@bubble-protocol/crypto";
-import { assert } from "@bubble-protocol/client";
 
 
 export function AdminDashboard() {
@@ -17,7 +15,7 @@ export function AdminDashboard() {
   const appError = stateManager.useStateData('error')();
   const { logout } = stateManager.useStateData('wallet-functions')();
   const { deregisterMember, banMember } = stateManager.useStateData('community-functions')();
-  const { mint } = stateManager.useStateData('token-functions')();
+  const { mint, batchMint } = stateManager.useStateData('token-functions')();
   const { memberCount } = stateManager.useStateData('community-stats')();
   const members = stateManager.useStateData('all-members')();
 
@@ -31,6 +29,8 @@ export function AdminDashboard() {
   const [telegram, setTelegram] = useState('');
   const [mintAmount, setMintAmount] = useState('');
   const [selectedMember, setSelectedMember] = useState();
+  const [batchCoins, setBatchCoins] = useState({});
+  const [batchCoinsAll, setBatchCoinsAll] = useState(0);
 
   function deregister() {
     setError(null);
@@ -65,12 +65,24 @@ export function AdminDashboard() {
     setTelegram(member.telegram);
   }
 
-  const accountValid = ecdsa.assert.isAddress(account);
+  function setMemberBatchCoins(account, coins) {
+    setBatchCoins(prev => ({...prev, [account]: coins}));
+  }
 
-  const usernamesValid = 
-    validateUsername(twitter, "https://twitter.com") &&
-    validateUsername(discord) &&
-    validateUsername(telegram);
+  function setBatchCoinsAllMembers() {
+    setBatchCoins(members.reduce((obj, m) => { obj[m.account] = batchCoinsAll; return obj }, {}));
+  }
+
+  function batchMintTokens() {
+    const batch = members.map(m => [m.account, parseInt(batchCoins[m.account])]).filter(b => b[1] > 0);
+    setError(null);
+    setBusy(true);
+    batchMint(batch)
+    .catch(setError)
+    .finally(() => setBusy(false));
+  }
+
+  const accountValid = ecdsa.assert.isAddress(account);
 
   return (
     <div className="admin-dashboard">
@@ -212,10 +224,32 @@ export function AdminDashboard() {
 
           { selected === 'batch-mint' &&
             <>
-              <span className="section-title">Mint Tokens For Multiple Members</span>
-              <p>Action not yet supported.</p>
-            </>
-          }
+            <span className="section-title">Batch Mint</span>
+            <div className="batch-mint-button-bar">
+              <div className="menu-item" onClick={setBatchCoinsAllMembers}>set all</div>
+              <MintTextBox text={batchCoinsAll} onChange={setBatchCoinsAll} />
+            </div>
+            <div className="member-list">
+              <div className="member header-row">
+                <div>Account</div>
+                <div>Twitter</div>
+                <div>Name</div>
+                <div className="mint">Mint</div>
+              </div>
+              {members.map(m => 
+                <div className={"member" + (batchCoins[m.account] > 0 ? ' highlight-text' : '')} key={m.account}>
+                  <div className="mono">{m.account}</div>
+                  <div>{m.twitter}</div>
+                  <div>{m.name}</div>
+                  <MintTextBox text={batchCoins[m.account]} onChange={value => setMemberBatchCoins(m.account, value)} />
+                </div>
+              )}
+            </div>
+            <div className="button-row">
+              <div className="cta-button-solid" onClick={batchMintTokens}>Batch Mint</div>
+            </div>
+          </>
+        }
 
           {busy && <div className="loader small"></div>}
 
@@ -235,6 +269,19 @@ export function AdminDashboard() {
   );
 
 }
+
+
+const MintTextBox = ({ text, onChange }) => {
+  return (
+    <div className="batch-mint-textbox">
+      <input 
+        type="text" 
+        value={text} 
+        onChange={e => onChange(e.target.value)}
+      />
+    </div>
+  );
+};
 
 
 function formatError(error) {

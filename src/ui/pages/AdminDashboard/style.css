@@ -126,6 +126,12 @@
   color: white;
 }
 
+.admin-dashboard .member.header-row .mint {
+  flex: 0;
+  min-width: 78px;
+  max-width: 78px;
+}
+
 .admin-dashboard .member.header-row:hover {
   cursor: inherit;
 }
@@ -137,4 +143,52 @@
 .admin-dashboard .member-list .mono {
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
+}
+
+.admin-dashboard .batch-mint-button-bar {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  padding-right: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.admin-dashboard .batch-mint-textbox {
+  flex: 0;
+  min-width: 60px;
+  max-width: 60px;
+  align-self: stretch;
+  align-items: center;
+  border: 1px solid;
+  border-color: #dcdcdc;
+  border-radius: 4px;
+  display: flex;
+  overflow: hidden;
+  padding: 2px 8px;
+  position: relative;
+}
+
+.admin-dashboard .batch-mint-textbox input {
+  color: #666666;
+  max-width: 56px;
+  background-color: inherit;
+  font-family: "Arial-Regular", Helvetica;
+  font-size: 14px;
+  font-weight: 400;
+  height: 16px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: relative;
+  white-space: nowrap;
+  border: none;
+}
+
+.admin-dashboard .batch-mint-textbox input:focus{
+  outline: none;
+}
+
+.admin-dashboard .member-list .highlight-text {
+  color: #0051ff;
+  font-weight: 700;
 }

@@ -75,6 +75,7 @@ export class MemberAdminBubble {
     await Promise.all(promises);
     this.members.sort((a,b) => a.account.localeCompare(b.account));
     console.trace('members', this.members);
+    // console.trace('mint', JSON.stringify(this.members.filter(m => m.account !== '0xb17194c35f00f13acab6a7bebb0ec6212ed4b79f').map(m => [m.account,5])));
     stateManager.dispatch('all-members', this.members);
     if (promises.length > 0) await this._saveState();
   }

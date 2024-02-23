@@ -19,14 +19,16 @@ export class PreGovernanceToken {
   }
 
   async mint(account, amount) {
+    console.trace('minting', amount, 'tokens for', account);
     ecdsa.assert.isAddress(account, 'account');
     assert.isNumber(amount, 'amount');
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'mint', [account, amount]);
   }
 
   async batchMint(batch) {
+    console.trace('minting batch', JSON.stringify(batch));
     assert.isArray(batch, 'batch');
-    return Promise.reject('not yet implemented');
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'mintBatch', [batch]);
   }
 
 }
