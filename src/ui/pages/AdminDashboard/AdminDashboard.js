@@ -130,6 +130,7 @@ export function AdminDashboard() {
           { selected === 'members' &&
             <>
               <span className="section-title">All Members</span>
+              <a className="menu-item" href="https://polygonscan.com/token/0xEf9eD7fdAB95b8Bc02CFe05d869c3e08E7F102d1#balances" target="_blank">Leaderboard</a>
               <div className="member-list">
                 <div className="member header-row">
                   <div className="date-column" onClick={() => sortMembersBy('registration')}>Registered</div>
