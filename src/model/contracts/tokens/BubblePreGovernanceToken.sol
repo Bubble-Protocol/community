@@ -27,6 +27,7 @@ contract BubblePreGovernanceToken is ERC20, AccessControl {
   /**
    * @dev minter role gives rights to mint and batch mint tokens, set the member registry and close the round
    */
+  bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
   uint256 private _nextTokenId;
@@ -35,7 +36,9 @@ contract BubblePreGovernanceToken is ERC20, AccessControl {
 
   constructor(string memory name, string memory ticker, IMemberRegistry memberRegistry) ERC20(name, ticker) {
     _memberRegistry = memberRegistry;
-    _grantRole(MINTER_ROLE, msg.sender);
+    _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
+    _setRoleAdmin(MINTER_ROLE, ADMIN_ROLE);
+    _grantRole(ADMIN_ROLE, msg.sender);
   }
 
   /**
@@ -66,7 +69,7 @@ contract BubblePreGovernanceToken is ERC20, AccessControl {
   /**
     * @dev closes the round so no more tokens can be minted
     */
-  function close() external onlyRole(MINTER_ROLE) {
+  function close() external onlyRole(ADMIN_ROLE) {
     _closed = true;
   }
 
@@ -87,7 +90,7 @@ contract BubblePreGovernanceToken is ERC20, AccessControl {
   /**
     * @dev sets the member registry
     */
-  function setMemberRegistry(IMemberRegistry memberRegistry) external onlyRole(MINTER_ROLE) {
+  function setMemberRegistry(IMemberRegistry memberRegistry) external onlyRole(ADMIN_ROLE) {
     _memberRegistry = memberRegistry;
   }
 

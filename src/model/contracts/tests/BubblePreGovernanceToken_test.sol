@@ -39,6 +39,20 @@ contract testSuite is testSuite_template {
         Assert.equal(address(token.getMemberRegistry()), address(community), "registry incorrect");
     }
 
+    function canGrantAdminRole() public {
+        address newAdminAddress = address(uint160(1000000));
+        Assert.equal(token.hasRole(token.ADMIN_ROLE(), address(this)), true, 'owner should have admin role by default');
+        Assert.equal(token.hasRole(token.MINTER_ROLE(), newAdminAddress), false, 'user should not have admin role by default');
+        token.grantRole(token.ADMIN_ROLE(), newAdminAddress);
+        Assert.equal(token.hasRole(token.ADMIN_ROLE(), newAdminAddress), true, 'user should have been granted the admin role');
+    }
+
+    function canGrantMinterRole() public {
+        Assert.equal(token.hasRole(token.MINTER_ROLE(), address(this)), false, 'owner should not have minter role by default');
+        token.grantRole(token.MINTER_ROLE(), address(this));
+        Assert.equal(token.hasRole(token.MINTER_ROLE(), address(this)), true, 'owner should have been granted the minter role');
+    }
+
     function canMintBatch() public {
         Mint[] memory batch = new Mint[](registeredAddresses.length);
         uint total = 0;
@@ -154,19 +168,19 @@ contract testSuite is testSuite_template {
         }
     }
 
-    function tryToCallSetMemberRegistryWithoutMinterRole() public {
+    function tryToCallSetMemberRegistryWithoutAdminRole() public {
         try member1.setTokenMemberRegistry(token, community) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
-            assertAccessControlUnauthorizedAccountError(reason, token.MINTER_ROLE());
+            assertAccessControlUnauthorizedAccountError(reason, token.ADMIN_ROLE());
         }
     }
 
-    function tryToCallCloseWithoutMinterRole() public {
+    function tryToCallCloseWithoutAdminRole() public {
         try member1.closeToken(token) {
             Assert.ok(false, "method should revert");
         } catch (bytes memory reason) {
-            assertAccessControlUnauthorizedAccountError(reason, token.MINTER_ROLE());
+            assertAccessControlUnauthorizedAccountError(reason, token.ADMIN_ROLE());
         }
     }
 
