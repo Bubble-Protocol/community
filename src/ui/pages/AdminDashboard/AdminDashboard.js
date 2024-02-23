@@ -2,11 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import './style.css';
 import { stateManager } from "../../../state-context";
 import { TextBox } from "../../components/TextBox/TextBox";
 import { ecdsa } from "@bubble-protocol/crypto";
+import { formatDate } from "../../utils/date-utils";
 
 
 export function AdminDashboard() {
@@ -31,6 +32,23 @@ export function AdminDashboard() {
   const [selectedMember, setSelectedMember] = useState();
   const [batchCoins, setBatchCoins] = useState({});
   const [batchCoinsAll, setBatchCoinsAll] = useState(0);
+  const [sortIndex, setSortIndex] = useState('registration');
+  const [sortedMembers, setSortedMembers] = useState(members);
+
+  useEffect(() => {
+    sortMembersBy(sortIndex);
+  }, [members]);
+
+  function sortMembersBy(index) {
+    if (index.startsWith('rev-')) index = index.slice(4);
+    const reverse = sortIndex === index;
+    const sorted = [...members];
+    if (index === 'registration') sorted.sort((a,b) => a.file.created - b.file.created);
+    else sorted.sort((a,b) => a[index].localeCompare(b[index]));
+    if (reverse) sorted.reverse();
+    setSortIndex(reverse ? 'rev-'+index : index);
+    setSortedMembers(sorted);
+  }
 
   function deregister() {
     setError(null);
@@ -114,15 +132,17 @@ export function AdminDashboard() {
               <span className="section-title">All Members</span>
               <div className="member-list">
                 <div className="member header-row">
-                  <div>Account</div>
-                  <div>Twitter</div>
-                  <div>Discord</div>
-                  <div>Telegram</div>
-                  <div>Name</div>
+                  <div className="date-column" onClick={() => sortMembersBy('registration')}>Registered</div>
+                  <div className="short-account-column" onClick={() => sortMembersBy('account')}>Account</div>
+                  <div onClick={() => sortMembersBy('twitter')}>Twitter</div>
+                  <div onClick={() => sortMembersBy('discord')}>Discord</div>
+                  <div onClick={() => sortMembersBy('telegram')}>Telegram</div>
+                  <div onClick={() => sortMembersBy('name')}>Name</div>
                 </div>
-                {members.map(m => 
+                {sortedMembers.map(m => 
                   <div className={"member" + (selectedMember === m ? ' selected' : '')} key={m.account} onClick={() => setSelectedMemberTo(m)}>
-                    <div className="mono">{formatAccount(m.account)}</div>
+                    <div className="date-column mono">{formatDate(m.file.created)}</div>
+                    <div className="short-account-column mono">{formatAccount(m.account)}</div>
                     <div>{m.twitter}</div>
                     <div>{m.discord}</div>
                     <div>{m.telegram}</div>
@@ -231,14 +251,16 @@ export function AdminDashboard() {
             </div>
             <div className="member-list">
               <div className="member header-row">
-                <div>Account</div>
-                <div>Twitter</div>
-                <div>Name</div>
+                <div className="date-column" onClick={() => sortMembersBy('registration')}>Registered</div>
+                <div className="account-column" onClick={() => sortMembersBy('account')}>Account</div>
+                <div onClick={() => sortMembersBy('twitter')}>Twitter</div>
+                <div onClick={() => sortMembersBy('name')}>Name</div>
                 <div className="mint">Mint</div>
               </div>
-              {members.map(m => 
+              {sortedMembers.map(m => 
                 <div className={"member" + (batchCoins[m.account] > 0 ? ' highlight-text' : '')} key={m.account}>
-                  <div className="mono">{m.account}</div>
+                  <div className="date-column mono">{formatDate(m.file.created)}</div>
+                  <div className="account-column mono" >{m.account}</div>
                   <div>{m.twitter}</div>
                   <div>{m.name}</div>
                   <MintTextBox text={batchCoins[m.account]} onChange={value => setMemberBatchCoins(m.account, value)} />

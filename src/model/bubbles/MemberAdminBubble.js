@@ -52,7 +52,7 @@ export class MemberAdminBubble {
 
   async refreshAllMembers() {
     await this._loadState();
-    const files = await this.bubble.list(toFileId(0), {modified: true});
+    const files = await this.bubble.list(toFileId(0), {modified: true, created: true});
     const memberFiles = files.filter(f => f.name.slice(0,3) !== '0x8');
     const existingMembers = this.members.filter(member => memberFiles.findIndex(file => member.file.name === file.name) >= 0);
     const newMembers = memberFiles.filter(file => this.members.findIndex(member => member.file.name === file.name) < 0).map(f => { return {file: f, account: '0x' + f.name.slice(26)}});
