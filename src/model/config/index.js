@@ -22,7 +22,7 @@ export const DEFAULT_CONFIG = {
   preGovToken: {
     contract: {
       chain: 137,
-      address: '0xe286aB9a1F8362c155b6aaDC7Ad7F40F4bF7115f',
+      address: '0xEf9eD7fdAB95b8Bc02CFe05d869c3e08E7F102d1',
       abi: preGovTokenAbi.default  
     }
   }
