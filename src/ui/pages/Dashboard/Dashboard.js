@@ -88,7 +88,7 @@ export function Dashboard() {
 
       <div className="page-width-section center">
         <span className="points">Your NFTs</span>
-        {!ownsNft && <div className="community-link" onClick={() => !busy && mint('0x35d0d209A821AB63665016e1229aba16f52906AB')}>Claim your Bubble / Rehide Partnership NFT!</div>}
+        {!ownsNft && <div className="community-notice">All Bubble / Rehide Partnership NFTs have now been minted.<br/><br/>Check back here regularly for more NFTs!</div>}
         {ownsNft && <a href="https://polygonscan.com/address/0x35d0d209A821AB63665016e1229aba16f52906AB"><img className="nft-image" src={rehideNftImage} alt="rehide-nft"></img></a>}
       </div>
 
