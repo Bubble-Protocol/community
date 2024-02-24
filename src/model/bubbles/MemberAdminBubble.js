@@ -65,6 +65,10 @@ export class MemberAdminBubble {
       return this.bubble.read(f.name)
       .then(json => { 
         const socials = JSON.parse(json);
+        if (!socials.name) socials.name = '';
+        if (!socials.twitter) socials.twitter = '';
+        if (!socials.discord) socials.discord = '';
+        if (!socials.telegram) socials.telegram = '';
         Object.assign(member, socials);
       })
       .catch(error => {
@@ -75,7 +79,6 @@ export class MemberAdminBubble {
     await Promise.all(promises);
     this.members.sort((a,b) => a.account.localeCompare(b.account));
     console.trace('members', this.members);
-    // console.trace('mint', JSON.stringify(this.members.filter(m => m.account !== '0xb17194c35f00f13acab6a7bebb0ec6212ed4b79f').map(m => [m.account,5])));
     stateManager.dispatch('all-members', this.members);
     if (promises.length > 0) await this._saveState();
   }
