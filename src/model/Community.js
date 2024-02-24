@@ -110,7 +110,7 @@ function validateSocials(details) {
   const results = {};
   const twitter = extractUsername(details.twitter, "https://twitter.com");
   const discord = extractUsername(details.discord);
-  const telegram = extractUsername(details.telegram);
+  const telegram = extractUsername(details.telegram, "https://t.me");
   if (twitter) results.twitter = twitter;
   if (discord) results.discord = discord;
   if (telegram) results.telegram = telegram;

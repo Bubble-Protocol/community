@@ -4,6 +4,7 @@ import { assert } from "@bubble-protocol/client";
 import { hexToUint8Array, uint8ArrayToHex } from "@bubble-protocol/crypto/src/utils";
 import secp256k1 from 'secp256k1';
 import { Key } from "@bubble-protocol/crypto/src/ecdsa";
+import { extractUsername } from "../../common/utils/social-utils";
 
 export class MemberBubble {
 
@@ -40,6 +41,9 @@ export class MemberBubble {
   }
   
   async setData(memberData) {
+    memberData.twitter = extractUsername(memberData.twitter, "https://twitter.com");
+    memberData.discord = extractUsername(memberData.discord);
+    memberData.telegram = extractUsername(memberData.telegram, "https://t.me");
     console.trace('writing member data to bubble', memberData);
     await this.bubble.write(this.dataFile, JSON.stringify(memberData));
     this.memberData = memberData;

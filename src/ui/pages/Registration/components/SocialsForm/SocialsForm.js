@@ -29,7 +29,7 @@ export function SocialsForm({buttonText, registering, onRegister, initialValues=
   const usernamesValid = 
     validateUsername(twitter, "https://twitter.com") &&
     validateUsername(discord) &&
-    validateUsername(telegram);
+    validateUsername(telegram, "https://t.me");
 
   return (
     <div className="form">
