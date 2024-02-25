@@ -48,12 +48,21 @@ export class Community {
     const account = this.wallet.account;
     console.log("registering user:", account, details);
     assert.isObject(details, 'details');
-    const {validatedDetails, socialHashes} = constructRegistrationSocials(details);
+    const {validatedDetails, socialHashes} = constructSocials(details);
     console.log("registering on blockchain:", account, socialHashes);
     return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'registerAsMember', [loginAddress, socialHashes])
     .then(this._getMemberCount.bind(this))
     .then(() => { return validatedDetails });
+  }
 
+  async updateSocials(newDetails) {
+    const account = this.wallet.account;
+    assert.isObject(newDetails, 'newDetails');
+    const {validatedDetails, socialHashes} = constructSocials(newDetails);
+    if (socialHashes.length === 0) return Promise.resolve();
+    console.log("updating on blockchain:", account, socialHashes);
+    return this.wallet.estimateAndSend(this.contract.address, this.contract.abi, 'updateSocials', [socialHashes])
+    .then(() => { return validatedDetails });
   }
 
   async deregister(account) {
@@ -117,7 +126,7 @@ function validateSocials(details) {
   return results;
 }
 
-function constructRegistrationSocials(details) {
+function constructSocials(details) {
   const validatedDetails = validateSocials(details);
   if (!validatedDetails.twitter) throw new Error('missing twitter username');
   if (!validatedDetails.discord) throw new Error('missing discord username');
