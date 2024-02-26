@@ -84,12 +84,18 @@ export function Dashboard() {
           <span className="points">Your Points: {'' + points}</span>
           <a className="small-link" href="https://polygonscan.com/token/0xEf9eD7fdAB95b8Bc02CFe05d869c3e08E7F102d1#balances" target="_blank">leaderboard</a>
         </div>
+        <div className="community-notice">
+          The more engagements you make in the community, whether on Twitter, Discord or Telegram, or through development, networking, suggestions or referrals, the more points you will earn!
+        </div>
+        <div className="community-info">
+          Points will be converted to <a className="community-link" href="/docs/tokenomics.pdf" target="_blank">governance tokens</a> on token launch.
+        </div>
       </div>
 
       <div className="page-width-section center">
         <span className="points">Your NFTs</span>
-        {!ownsNft && <div className="community-notice">All Bubble / Rehide Partnership NFTs have now been minted.<br/><br/>Check back here regularly for more NFTs!</div>}
         {ownsNft && <a href="https://polygonscan.com/address/0x35d0d209A821AB63665016e1229aba16f52906AB"><img className="nft-image" src={rehideNftImage} alt="rehide-nft"></img></a>}
+        <div className="community-notice">Check back here regularly for your chance to mint {ownsNft && "other"} project milestone NFTs!</div>
       </div>
 
       <div className="divider"></div>
@@ -102,7 +108,7 @@ export function Dashboard() {
           <p className="disclaimer">
             Your data is encrypted and stored securely in an off-chain bubble on the Bubble Private Cloud. 
             You have full control of your data and can delete it at any time.  
-            Bubble Protocol has read access to your data for the purposes of implementing its referral program and other community promotions.
+            Bubble Protocol has read access to your data for the purposes of implementing its rewards program and other community promotions.
             Your data will never be shared with anyone.
           </p>
 
