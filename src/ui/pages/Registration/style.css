@@ -1,9 +1,9 @@
-.hero-image-frame.community-page {
+.registration .hero-image-frame {
   width: 500px;
   height: 500px;
 }  
 
-.hero-image.community-page {
+.registration .hero-image {
   width: 70%;
   max-width: 100%;
   height: auto;
@@ -11,7 +11,7 @@
   right: 28%;
 }  
 
-.hero-section.community-page .bubble1 {
+.registration .hero-section .bubble1 {
   width: 25%;
   left: auto;
   right: 27%;
@@ -19,7 +19,7 @@
   top: 10%;
 }
 
-.hero-section.community-page .bubble2 {
+.registration .hero-section .bubble2 {
   width: 15%;
   left: auto;
   right: 18%;
@@ -27,7 +27,7 @@
   top: 15%;
 }
 
-.hero-section.community-page .bubble3 {
+.registration .hero-section .bubble3 {
   width: 10%;
   left: auto;
   right: 25%;
@@ -35,6 +35,14 @@
   top: 28%;
 }
 
-.disclaimer {
+.registration .disclaimer {
   font-style: italic;
+}
+
+.registration .community-link {
+  text-decoration: underline;
+}
+
+.registration .community-link:hover {
+  cursor: pointer;
 }

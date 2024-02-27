@@ -106,10 +106,11 @@ export function Dashboard() {
           <span className="section-title">Your Account</span>
 
           <p className="disclaimer">
-            Your data is encrypted and stored securely in an off-chain bubble on the Bubble Private Cloud. 
+            Your data is encrypted and stored securely in an off-chain bubble on the <a className="community-link" href="https://vault.bubbleprotocol.com/" target="_blank">Bubble Private Cloud</a>. 
             You have full control of your data and can delete it at any time.  
-            Bubble Protocol has read access to your data for the purposes of implementing its rewards program and other community promotions.
-            Your data will never be shared with anyone.
+            Bubble Protocol can read the data from your bubble for the purposes of implementing its rewards program and other community promotions.
+            Your data will never be shared with anyone and will never be stored outside of your bubble.
+            For more information see our <a className="community-link" href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target="_blank">privacy policy</a>.
           </p>
 
           <SocialsForm buttonText="Update" onRegister={updateUser} registering={registering} initialValues={memberData} connectButton={false} registerButton={!confirmDelete && !busy} />
