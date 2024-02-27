@@ -147,16 +147,57 @@ contract testSuite is testSuite_template {
         }
     }
 
-    function checkThereIsAMaxLimitForRegistrations() public {
+    function fillUpMembership1() public {
         // fill up registry
         bytes32[TEST_MAX_SOCIALS] memory socials;
-        for (uint i=community.getMemberCount(); i<community.MAX_MEMBERS(); i++) {
+        for (uint i=community.getMemberCount(); i<300; i++) {
+            socials[0] = bytes32(1000000+i);
+            socials[1] = bytes32(2000000+i);
+            socials[2] = bytes32(3000000+i);
+            community.registerMember(address(uint160(i+2)), address(1), socials);
+        }
+        Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
+    }
+
+    function fillUpMembership2() public {
+        // fill up registry
+        bytes32[TEST_MAX_SOCIALS] memory socials;
+        for (uint i=community.getMemberCount(); i<600; i++) {
+            socials[0] = bytes32(1000000+i);
+            socials[1] = bytes32(2000000+i);
+            socials[2] = bytes32(3000000+i);
+            community.registerMember(address(uint160(i+2)), address(1), socials);
+        }
+        Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
+    }
+
+    function fillUpMembership3() public {
+        // fill up registry
+        bytes32[TEST_MAX_SOCIALS] memory socials;
+        for (uint i=community.getMemberCount(); i<900; i++) {
+            socials[0] = bytes32(1000000+i);
+            socials[1] = bytes32(2000000+i);
+            socials[2] = bytes32(3000000+i);
+            community.registerMember(address(uint160(i+2)), address(1), socials);
+        }
+        Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
+    }
+
+    function fillUpMembership4() public {
+        // fill up registry
+        bytes32[TEST_MAX_SOCIALS] memory socials;
+        for (uint i=community.getMemberCount(); i<1200; i++) {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
             community.registerMember(address(uint160(i+2)), address(1), socials);
         }
         Assert.equal(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
+    }
+
+    function checkThereIsAMaxLimitForRegistrations() public {
+        Assert.equal(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
+        bytes32[TEST_MAX_SOCIALS] memory socials;
         socials[0] = bytes32(uint256(11000000));
         socials[1] = bytes32(uint256(12000000));
         socials[2] = bytes32(uint256(13000000));

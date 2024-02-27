@@ -70,7 +70,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, IMemberRegistr
   /**
    * @dev maximum number of members allowed in the community
    */
-  uint public constant MAX_MEMBERS = 150;
+  uint public constant MAX_MEMBERS = 1200;
 
   /**
    * @dev community admin role gives rights to register, deregister and ban arbitrary users
