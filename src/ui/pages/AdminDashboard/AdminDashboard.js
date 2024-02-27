@@ -32,6 +32,8 @@ export function AdminDashboard() {
   const [selectedMember, setSelectedMember] = useState();
   const [batchCoins, setBatchCoins] = useState({});
   const [batchCoinsAll, setBatchCoinsAll] = useState(0);
+  const [batchSelection, setBatchSelection] = useState({});
+  const [lastSelected, setLastSelected] = useState(null);
   const [sortIndex, setSortIndex] = useState('registration');
   const [sortedMembers, setSortedMembers] = useState(members);
 
@@ -87,8 +89,54 @@ export function AdminDashboard() {
     setBatchCoins(prev => ({...prev, [account]: coins}));
   }
 
-  function setBatchCoinsAllMembers() {
-    setBatchCoins(members.reduce((obj, m) => { obj[m.account] = batchCoinsAll; return obj }, {}));
+  function zeroMemberBatchCoins() {
+    setBatchCoins(members.reduce((obj, m) => { obj[m.account] = 0; return obj }, {}));
+  }
+
+  function toggleBatchSelection() {
+    setBatchSelection(prev => {
+      const newState = {};
+      members.forEach(m => newState[m.account] = !prev[m.account]);
+      return newState;
+    })
+  }
+
+  function setBatchSelectionCoins() {
+    setBatchCoins(members.reduce((obj, m) => { 
+      if (batchSelection[m.account]) obj[m.account] = batchCoinsAll;
+      else obj[m.account] = batchCoins[m.account];
+      return obj 
+    }, {}));
+  }
+
+  function setMemberBatchSelectionAll(to) {
+    setBatchSelection(members.reduce((obj, m) => { obj[m.account] = to; return obj }, {}));
+  }
+
+  function setMemberBatchSelection(account, index, event) {
+    event.preventDefault();
+    const isCtrlPressed = event.ctrlKey || event.metaKey;
+    const isShiftPressed = event.shiftKey;
+    setBatchSelection(prev => {
+      if (isShiftPressed && lastSelected !== null) {
+        const range = sortedMembers.slice(Math.min(lastSelected, index), Math.max(lastSelected, index)+1);
+        const newState = {};
+        range.forEach(m => {
+          newState[m.account] = true;
+        });
+        return newState;
+      } else if (!isCtrlPressed) {
+        return {[account]: !prev[account]};
+      } else {
+        return { ...prev, [account]: !prev[account] };
+      }
+    });
+
+    // Update the lastSelected state if not Shift pressed, to handle subsequent Shift+clicks
+    if (!isShiftPressed) {
+      setLastSelected(index);
+    }
+
   }
 
   function batchMintTokens() {
@@ -247,7 +295,11 @@ export function AdminDashboard() {
             <>
             <span className="section-title">Batch Mint</span>
             <div className="batch-mint-button-bar">
-              <div className="menu-item" onClick={setBatchCoinsAllMembers}>set all</div>
+              <div className="menu-item" onClick={() => setMemberBatchSelectionAll(true)}>select all</div>
+              <div className="menu-item" onClick={() => setMemberBatchSelectionAll(false)}>clear selection</div>
+              <div className="menu-item" onClick={toggleBatchSelection}>invert selection</div>
+              <div className="menu-item" onClick={zeroMemberBatchCoins}>zero all</div>
+              <div className="menu-item" onClick={setBatchSelectionCoins}>apply to selected</div>
               <MintTextBox text={batchCoinsAll} onChange={setBatchCoinsAll} />
             </div>
             <div className="member-list">
@@ -258,8 +310,8 @@ export function AdminDashboard() {
                 <div onClick={() => sortMembersBy('name')}>Name</div>
                 <div className="mint">Mint</div>
               </div>
-              {sortedMembers.map(m => 
-                <div className={"member" + (batchCoins[m.account] > 0 ? ' highlight-text' : '')} key={m.account}>
+              {sortedMembers.map((m, i) => 
+                <div className={"member" + (batchCoins[m.account] > 0 ? ' highlight-text' : '') + (batchSelection[m.account] ? ' selected' : '')} key={m.account} onClick={e => setMemberBatchSelection(m.account, i, e)}>
                   <div className="date-column mono">{formatDate(m.file.created)}</div>
                   <div className="account-column mono" >{m.account}</div>
                   <div>{m.twitter}</div>

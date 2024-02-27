@@ -106,6 +106,7 @@
   text-align: left;
   border-bottom: 1px solid #aaa;
   padding: 4px 8px;
+  user-select: none;
 }
 
 .admin-dashboard .member:hover {
@@ -148,7 +149,7 @@
 .admin-dashboard .batch-mint-button-bar {
   flex: 1;
   display: flex;
-  gap: 8px;
+  gap: 24px;
   padding-right: 8px;
   align-items: center;
   justify-content: flex-end;
