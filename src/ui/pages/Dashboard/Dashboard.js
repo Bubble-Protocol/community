@@ -14,6 +14,7 @@ export function Dashboard() {
   const appError = stateManager.useStateData('error')();
   const { logout } = stateManager.useStateData('wallet-functions')();
   const { updateData, deregister, mintNft, hasNft } = stateManager.useStateData('community-functions')();
+  const { memberCount } = stateManager.useStateData('community-stats')();
   const memberData = stateManager.useStateData('member-data')();
   const points = stateManager.useStateData('member-points')();
 
@@ -68,13 +69,16 @@ export function Dashboard() {
     <div className="dashboard">
 
       <div className="page-width-section title-section">
-        <span className="page-title">
-          Your Bubble Community Account
-        </span>
+          <span className="page-title">
+            Your Bubble Community Account
+          </span>
         <p className="page-summary">
           Welcome to your Bubble Community dashboard.
-          From here you can manage your account and access all our exclusive member-only benefits.
+          From here you can manage your account and access all our exclusive member-only benefits.<br/>
+          <br/>
+          <a className="member-count" href="https://polygonscan.com/address/0xfF0795db0D1B09c00F9B01b23a1ff6b7556daA6F" target="_blank">Members: {'' + memberCount}</a>
         </p>
+
       </div>
 
       <div className="divider"></div>

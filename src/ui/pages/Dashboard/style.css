@@ -38,6 +38,12 @@
   cursor: pointer;
 }
 
+.dashboard .member-count {
+  font-family: Poppins;
+  color: #686666;
+  font-size: 15px;
+}
+
 .dashboard .community-info {
   font-family: Poppins;
   color: #686666;
@@ -97,9 +103,16 @@
   align-items: center;
 }
 
+.dashboard .member-count {
+  text-decoration: underline;
+  color: #444;
+  font-size: 15px;
+}
+
 .dashboard .small-link {
   text-decoration: underline;
   color: rgb(144, 144, 0);
+  font-size: 15px;
 }
 
 .dashboard .nft-image {

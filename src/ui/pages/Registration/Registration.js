@@ -24,6 +24,7 @@ export function Registration() {
   const appError = stateManager.useStateData('error')();
   const isBanned = stateManager.useStateData('isBanned')();
   const { register } = stateManager.useStateData('community-functions')();
+  const { memberCount } = stateManager.useStateData('community-stats')();
   
   // Local state data
   const [registering, setRegistering] = useState(false);
@@ -35,7 +36,6 @@ export function Registration() {
       .catch(setRegisterError)
       .finally(() => setRegistering(false));
   }
-
   return (
     <div className="registration">
         <div className="hero-section">
@@ -46,6 +46,7 @@ export function Registration() {
                 <span className="subtitle">
                   Register to join our on-chain community and start collecting Bubble NFTs
                 </span>
+                {memberCount > 0 && <span className="member-count">{"Members: " + memberCount}</span>}
             </div>
             <div className="hero-image-frame">
                 <img className="hero-image community-page" src={communityImage} alt="hero"/>
@@ -95,7 +96,7 @@ export function Registration() {
                   Registration is performed on-chain on the Polygon network and requires a network fee.
                 </p>
                 <p className="disclaimer">
-                Your data is encrypted and stored securely in an off-chain bubble on the <a className="community-link" href="https://vault.bubbleprotocol.com/" target="_blank">Bubble Private Cloud</a>. 
+                  Your data is encrypted and stored securely in an off-chain bubble on the <a className="community-link" href="https://vault.bubbleprotocol.com/" target="_blank">Bubble Private Cloud</a>. 
                   You have full control of your data and can delete it at any time.  
                   Bubble Protocol can read the data from your bubble for the purposes of implementing its rewards program and other community promotions.
                   Your data will never be shared with anyone and will never be stored outside of your bubble.

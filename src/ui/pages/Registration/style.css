@@ -35,6 +35,12 @@
   top: 28%;
 }
 
+.registration .member-count {
+  font-style: italic;
+  font-size: 20px;
+  color: #0067a2;
+}
+
 .registration .disclaimer {
   font-style: italic;
 }
