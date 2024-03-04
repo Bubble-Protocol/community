@@ -18,9 +18,6 @@ struct Mint {
 /**
  * Bubble Protocol pre-governance designed to capture rewards for community members during promotions and referral schemes.
  * Tokens are non-transferable, designed instead to be converted to governance tokens or other rewards at a later date.
- *
- * TODO: Check user is a member of the community before minting
- * TODO: Add claim flag?
  */
 contract BubblePreGovernanceToken is ERC20, AccessControl {
 
