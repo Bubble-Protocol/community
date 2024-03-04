@@ -41,6 +41,14 @@
   color: #0067a2;
 }
 
+.registration .disclaimer-box {
+  border: 1px solid #88a;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  gap: 24px;
+}
+
 .registration .disclaimer {
   font-style: italic;
 }

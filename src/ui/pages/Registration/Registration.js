@@ -8,6 +8,7 @@ import communityImage from "../../images/community.png";
 import { stateManager } from "../../../state-context";
 import { useConnectModal, ConnectButton } from '@rainbow-me/rainbowkit';
 import { SocialsForm } from "./components/SocialsForm";
+import { CheckBox } from "../../components/CheckBox/CheckBox";
 
 
 /**
@@ -27,6 +28,7 @@ export function Registration() {
   const { memberCount } = stateManager.useStateData('community-stats')();
   
   // Local state data
+  const [accepted, setAccepted] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState(false);
 
@@ -90,20 +92,31 @@ export function Registration() {
           {appState === 'initialised' && !isBanned &&
             <>
               <div className="section-paragraphs">
-                <p>
-                  Register to join the Bubble Community. 
-                  Any rewards or NFTs you earn through your social media activities will be sent to your wallet address.
-                  Registration is performed on-chain on the Polygon network and requires a network fee.
-                </p>
-                <p className="disclaimer">
-                  Your data is encrypted and stored securely in an off-chain bubble on the <a className="community-link" href="https://vault.bubbleprotocol.com/" target="_blank">Bubble Private Cloud</a>. 
-                  You have full control of your data and can delete it at any time.  
-                  Bubble Protocol can read the data from your bubble for the purposes of implementing its rewards program and other community promotions.
-                  Your data will never be shared with anyone and will never be stored outside of your bubble.
-                  For more information see our <a className="community-link" href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target="_blank">privacy policy</a>.
-                </p>
+                <div className="disclaimer-box">
+                  <CheckBox selected={accepted} setSelected={setAccepted} />
+                  <div className="section-paragraphs">
+                    <p>
+                      By checking this box you agree to be an active participant in the Bubble Protocol community engagement programme. 
+                    </p>
+                    <p>
+                      The Bubble Protocol community lets you turn your community engagements - such as likes, comments, discord activity, suggestions and development contributions - into points that will be converted to governance tokens once we launch our DAO.
+                      <b><i> The more active you are the more points, and therefore governance tokens, you will earn! </i></b>
+                      All points will be sent to your wallet address in the form of our <a className="community-link" href="https://polygonscan.com/token/0xEf9eD7fdAB95b8Bc02CFe05d869c3e08E7F102d1#balances" target="_blank">pre-goverance ERC20 token</a>.
+                    </p>
+                    <p>
+                      Registration is performed on-chain on the Polygon network and requires a network fee.
+                    </p>
+                    <p className="disclaimer">
+                      Your data is encrypted and stored securely in an off-chain bubble on the <a className="community-link" href="https://vault.bubbleprotocol.com/" target="_blank">Bubble Private Cloud</a>. 
+                      You have full control of your data and can delete it at any time.  
+                      Bubble Protocol can read the data from your bubble for the purposes of implementing its rewards program and other community promotions.
+                      Your data will never be shared with anyone and will never be stored outside of your bubble.
+                      For more information see our <a className="community-link" href="https://seedling-d.app/article/0x543686de00b1202dc94b34f9b05816c878e0766427e0f2d86ce916331880e756" target="_blank">privacy policy</a>.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <SocialsForm buttonText="Register" onRegister={registerUser} registering={registering} />
+              <SocialsForm buttonText="Register" onRegister={registerUser} registering={registering} disabled={!accepted} />
             </>
           }
 

@@ -14,7 +14,7 @@ import { validateUsername } from "../../../../../common/utils/social-utils";
  * @dev The main application screen
  */
 
-export function SocialsForm({buttonText, registering, onRegister, initialValues={}, connectButton=true, registerButton=true}) {
+export function SocialsForm({buttonText, registering, onRegister, initialValues={}, connectButton=true, registerButton=true, disabled=false}) {
 
   // Local state data
   const [name, setName] = useState(initialValues.name || '');
@@ -74,7 +74,7 @@ export function SocialsForm({buttonText, registering, onRegister, initialValues=
       <p className="center">Please check the usernames above carefully. If any of the details are incorrect you may not get credit for your earnings.</p>
       {connectButton && <div className="center"><ConnectButton /></div>}
       <div className="button-row center">
-        {registerButton && !registering && <div className={"cta-button-solid" + (usernamesValid ? '' : " disabled")} onClick={usernamesValid ? register : null}>{buttonText}</div>}
+        {registerButton && !registering && <div className={"cta-button-solid" + (usernamesValid && !disabled ? '' : " disabled")} onClick={usernamesValid && !disabled ? register : null}>{buttonText}</div>}
         {registerButton && registering && <div className="loader small"></div>}
       </div>
     </div>
@@ -89,6 +89,7 @@ SocialsForm.propTypes = {
   registering: PropTypes.bool,
   connectButton: PropTypes.bool,
   registerButton: PropTypes.bool,
+  disabled: PropTypes.bool,
   initialValues: PropTypes.object
 };
 
