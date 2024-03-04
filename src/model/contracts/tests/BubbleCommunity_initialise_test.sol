@@ -9,8 +9,9 @@ import "remix_tests.sol";
 // Although it may fail compilation in 'Solidity Compiler' plugin
 // But it will work fine in 'Solidity Unit Testing' plugin
 import "remix_accounts.sol";
-import {BubbleCommunity, BubbleCommunityImplementation} from "../BubbleCommunity.sol";
+import {BubbleCommunity, BubbleCommunityImplementation, Mintable} from "../BubbleCommunity.sol";
 import {CommunityUser} from "./CommunityUser.sol";
+import {BubblePreGovernanceToken} from "../tokens/BubblePreGovernanceToken.sol";
 
 contract testSuite {
 
@@ -23,6 +24,7 @@ contract testSuite {
     BubbleCommunity communityStorage;
     BubbleCommunityImplementation implementation;
     BubbleCommunityImplementation community;
+    BubblePreGovernanceToken communityToken;
 
     /// 'beforeAll' runs before all other tests
     /// More special functions are: 'beforeEach', 'beforeAll', 'afterEach' & 'afterAll'
@@ -48,7 +50,8 @@ contract testSuite {
         Assert.equal(community.owner(), owner, "owner should be accessible through recast implementation");
         Assert.equal(community.initialised(), false, "initialised should be accessible through recast implementation");
         // Initialise upgraded contract
-        community.initialise();
+        communityToken = new BubblePreGovernanceToken("community token", "CT", community);
+        community.initialise(Mintable(address(communityToken)));
         Assert.equal(community.initialised(), true, "community should be initialised after calling initialise");
         // Construct test members and admins
         member1 = new CommunityUser(community);

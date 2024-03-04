@@ -3,8 +3,9 @@
 pragma solidity 0.8.24;
 
 import "remix_tests.sol"; 
-import {BubbleCommunity, BubbleCommunityImplementation} from "../BubbleCommunity.sol";
+import {BubbleCommunity, BubbleCommunityImplementation, Mintable} from "../BubbleCommunity.sol";
 import {CommunityUser} from "./CommunityUser.sol";
+import {BubblePreGovernanceToken} from "../tokens/BubblePreGovernanceToken.sol";
 
 uint constant TEST_MAX_SOCIALS = 5;
 
@@ -19,6 +20,7 @@ contract testSuite_template {
     BubbleCommunity communityStorage;
     BubbleCommunityImplementation implementation;
     BubbleCommunityImplementation community;
+    BubblePreGovernanceToken communityToken;
 
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
     bytes32[TEST_MAX_SOCIALS] internal NULL_SOCIALS;
@@ -29,8 +31,11 @@ contract testSuite_template {
         implementation = new BubbleCommunityImplementation();
         communityStorage.upgradeImplementation(address(implementation));
         community = BubbleCommunityImplementation(address(communityStorage));
-        community.initialise();
+        communityToken = new BubblePreGovernanceToken("community token", "CT", community);
+        community.initialise(Mintable(address(communityToken)));
         Assert.equal(community.initialised(), true, "community should be initialised after calling initialise");
+        // Grant MINTER_ROLE to the community itself to allow it to mint tokens for new members
+        communityToken.grantRole(communityToken.MINTER_ROLE(), address(community));
         // Construct test members and admins
         member1 = new CommunityUser(community);
         member2 = new CommunityUser(community);

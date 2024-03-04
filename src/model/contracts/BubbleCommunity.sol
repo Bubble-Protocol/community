@@ -8,6 +8,7 @@ import "IMemberRegistry.sol";
 import "../EternalStorage.sol";
 import "AccessControlledStorage.sol";
 import "AccessControlBits.sol";
+import "tokens/Mintable.sol";
 
 
 uint constant NUM_SOCIALS = 3; // Current fixed number of socials
@@ -61,6 +62,11 @@ uint constant PUBLIC_DIR = 0x800000000000000000000000000000000000000000000000000
 uint constant MEMBER_DIR = 0x8000000000000000000000000000000000000000000000000000000000000002;        // Directory restricted to members only
 uint constant MEMBER_ADMIN_DIR = 0x8000000000000000000000000000000000000000000000000000000000000003;  // Directory restricted to member admins only
 
+/*
+ * Number of pre-governance tokens minted for new members
+ */
+uint constant NEW_MEMBER_TOKENS = 5;
+
 
 /**
  * Upgradeable implementation.
@@ -83,14 +89,20 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, IMemberRegistr
   bytes32 public constant NFT_ADMIN_ROLE = keccak256("NFT_ADMIN_ROLE");
 
   /**
+   * @dev allows minting of tokens on registration
+   */
+  Mintable preGovToken;
+
+  /**
    * @dev verify eternal storage and initialise roles for the owner
    */
-  function initialise() external onlyOwner onlyProxy {
+  function initialise(Mintable token) external onlyOwner onlyProxy {
     _verifyEternalStorage(_endOfStorage);
     require(!initialised, "already initialised");
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(MEMBER_ADMIN_ROLE, msg.sender);
     _grantRole(NFT_ADMIN_ROLE, msg.sender);
+    preGovToken = token;
     initialised = true;
   }
   
@@ -311,6 +323,7 @@ contract BubbleCommunityImplementation is BubbleCommunityStorage, IMemberRegistr
     _memberSocials[member] = socials;
     _members[member] = login;
     _memberCount++;
+    if (preGovToken.balanceOf(member) == 0) preGovToken.mint(member, NEW_MEMBER_TOKENS);
   }
 
   /**

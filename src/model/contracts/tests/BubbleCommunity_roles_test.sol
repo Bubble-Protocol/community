@@ -14,7 +14,7 @@ contract testSuite is testSuite_template {
     }
 
     function tryToCallInitialiseWithoutAdminRole() public {
-        try member1.initialise() {
+        try member1.initialise(Mintable(address(communityToken))) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "permission denied", "expected revert message incorrect");

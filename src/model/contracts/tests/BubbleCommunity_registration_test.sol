@@ -19,6 +19,7 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getUserAddress(member1Socials[0]), address(0), 'social 0 owner should be zero before registering');
         Assert.equal(community.getUserAddress(member1Socials[1]), address(0), 'social 1 owner should be zero before registering');
         Assert.equal(community.getUserAddress(member1Socials[2]), address(0), 'social 2 owner should be zero before registering');
+        Assert.equal(communityToken.balanceOf(address(member1)), 0, 'token balance should be zero before registering');
         uint prevMemberCount = community.getMemberCount();
         member1.registerAsMember(member1Socials);
         Assert.equal(community.getMemberCount(), prevMemberCount+1, 'member count should have increased by one');
@@ -26,6 +27,28 @@ contract testSuite is testSuite_template {
         Assert.equal(community.getUserAddress(member1Socials[0]), address(member1), 'social 0 owner should be member after registering');
         Assert.equal(community.getUserAddress(member1Socials[1]), address(member1), 'social 1 owner should be member after registering');
         Assert.equal(community.getUserAddress(member1Socials[2]), address(member1), 'social 2 owner should be member after registering');
+        Assert.equal(communityToken.balanceOf(address(member1)), 5, 'token balance should be 5 after registering');
+    }
+
+    function registerMember2AsAdmin() public {
+        address newMember = address(2);
+        bytes32[5] memory memberSocials;
+        memberSocials[0] = bytes32(0x0111000000000000000000000000000000000000000000000000000000000000);
+        memberSocials[1] = bytes32(0x0112000000000000000000000000000000000000000000000000000000000000);
+        memberSocials[2] = bytes32(0x0113000000000000000000000000000000000000000000000000000000000000);
+        Assert.equal(community.isMember(newMember), false, 'isMember should be false before registering');
+        Assert.equal(community.getUserAddress(memberSocials[0]), address(0), 'social 0 owner should be zero before registering');
+        Assert.equal(community.getUserAddress(memberSocials[1]), address(0), 'social 1 owner should be zero before registering');
+        Assert.equal(community.getUserAddress(memberSocials[2]), address(0), 'social 2 owner should be zero before registering');
+        Assert.equal(communityToken.balanceOf(newMember), 0, 'token balance should be zero before registering');
+        uint prevMemberCount = community.getMemberCount();
+        community.registerMember(newMember, newMember, memberSocials);
+        Assert.equal(community.getMemberCount(), prevMemberCount+1, 'member count should have increased by one');
+        Assert.equal(community.isMember(newMember), true, 'isMember should be true after registering');
+        Assert.equal(community.getUserAddress(memberSocials[0]), newMember, 'social 0 owner should be member after registering');
+        Assert.equal(community.getUserAddress(memberSocials[1]), newMember, 'social 1 owner should be member after registering');
+        Assert.equal(community.getUserAddress(memberSocials[2]), newMember, 'social 2 owner should be member after registering');
+        Assert.equal(communityToken.balanceOf(newMember), 5, 'token balance should be 5 after registering');
     }
 
     function updateMember1SocialsAsUser() public {
@@ -147,6 +170,26 @@ contract testSuite is testSuite_template {
         }
     }
 
+    function reregisteringDoesNotIncreaseTokens() public {
+        bytes32[] memory member1Socials = new bytes32[](3);
+        member1Socials[0] = bytes32(0x0101000000000000000000000000000000000000000000000000000000000000);
+        member1Socials[1] = bytes32(0x0102000000000000000000000000000000000000000000000000000000000000);
+        member1Socials[2] = bytes32(0x0103000000000000000000000000000000000000000000000000000000000000);
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should be true before reregistering');
+        Assert.equal(communityToken.balanceOf(address(member1)), 5, 'token balance should be 5 before registering');
+        uint prevMemberCount = community.getMemberCount();
+        member1.deregisterAsMember();
+        Assert.equal(community.isMember(address(member1)), false, 'isMember should be false after deregistering');
+        Assert.equal(communityToken.balanceOf(address(member1)), 5, 'token balance should still be 5 after deregistering');
+        member1.registerAsMember(member1Socials);
+        Assert.equal(community.getMemberCount(), prevMemberCount, 'member count should be the same after reregistering');
+        Assert.equal(community.isMember(address(member1)), true, 'isMember should be true after registering');
+        Assert.equal(community.getUserAddress(member1Socials[0]), address(member1), 'social 0 owner should be member after registering');
+        Assert.equal(community.getUserAddress(member1Socials[1]), address(member1), 'social 1 owner should be member after registering');
+        Assert.equal(community.getUserAddress(member1Socials[2]), address(member1), 'social 2 owner should be member after registering');
+        Assert.equal(communityToken.balanceOf(address(member1)), 5, 'token balance should still be 5 after reregistering');
+    }
+
     function fillUpMembership1() public {
         // fill up registry
         bytes32[TEST_MAX_SOCIALS] memory socials;
@@ -154,7 +197,7 @@ contract testSuite is testSuite_template {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
-            community.registerMember(address(uint160(i+2)), address(1), socials);
+            community.registerMember(address(uint160(i+2)), address(2), socials);
         }
         Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
     }
@@ -166,7 +209,7 @@ contract testSuite is testSuite_template {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
-            community.registerMember(address(uint160(i+2)), address(1), socials);
+            community.registerMember(address(uint160(i+2)), address(2), socials);
         }
         Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
     }
@@ -178,7 +221,7 @@ contract testSuite is testSuite_template {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
-            community.registerMember(address(uint160(i+2)), address(1), socials);
+            community.registerMember(address(uint160(i+2)), address(2), socials);
         }
         Assert.notEqual(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should not be maximum');
     }
@@ -190,7 +233,7 @@ contract testSuite is testSuite_template {
             socials[0] = bytes32(1000000+i);
             socials[1] = bytes32(2000000+i);
             socials[2] = bytes32(3000000+i);
-            community.registerMember(address(uint160(i+2)), address(1), socials);
+            community.registerMember(address(uint160(i+2)), address(2), socials);
         }
         Assert.equal(community.getMemberCount(), community.MAX_MEMBERS(), 'member count should be maximum');
     }
@@ -201,7 +244,7 @@ contract testSuite is testSuite_template {
         socials[0] = bytes32(uint256(11000000));
         socials[1] = bytes32(uint256(12000000));
         socials[2] = bytes32(uint256(13000000));
-        try community.registerMember(address(uint160(community.MAX_MEMBERS()+2)), address(1), socials) {
+        try community.registerMember(address(uint160(community.MAX_MEMBERS()+2)), address(2), socials) {
             Assert.ok(false, "method should revert");
         } catch Error(string memory reason) {
             Assert.equal(reason, "membership full", "expected revert message incorrect");

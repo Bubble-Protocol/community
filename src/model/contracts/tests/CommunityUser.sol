@@ -2,7 +2,7 @@
         
 pragma solidity 0.8.24;
 
-import {BubbleCommunityImplementation, IMemberRegistry} from "../BubbleCommunity.sol";
+import {BubbleCommunityImplementation, IMemberRegistry, Mintable} from "../BubbleCommunity.sol";
 import {BubbleCommunityNFT} from "../tokens/BubbleCommunityNFT.sol";
 import {BubblePreGovernanceToken, Mint} from "../tokens/BubblePreGovernanceToken.sol";
 
@@ -21,8 +21,8 @@ contract CommunityUser {
         uut = uutAddress;
     }
 
-    function initialise() external {
-        uut.initialise();
+    function initialise(Mintable token) external {
+        uut.initialise(token);
     }
     
     function registerAsMember(bytes32[] memory socials) external {
