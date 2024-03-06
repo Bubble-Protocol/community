@@ -89,8 +89,8 @@ export function AdminDashboard() {
     setBatchCoins(prev => ({...prev, [account]: coins}));
   }
 
-  function zeroMemberBatchCoins() {
-    setBatchCoins(members.reduce((obj, m) => { obj[m.account] = 0; return obj }, {}));
+  function clearMemberBatchCoins() {
+    setBatchCoins(members.reduce((obj, m) => { delete obj[m.account]; return obj }, {}));
   }
 
   function toggleBatchSelection() {
@@ -298,7 +298,7 @@ export function AdminDashboard() {
               <div className="menu-item" onClick={() => setMemberBatchSelectionAll(true)}>select all</div>
               <div className="menu-item" onClick={() => setMemberBatchSelectionAll(false)}>clear selection</div>
               <div className="menu-item" onClick={toggleBatchSelection}>invert selection</div>
-              <div className="menu-item" onClick={zeroMemberBatchCoins}>zero all</div>
+              <div className="menu-item" onClick={clearMemberBatchCoins}>zero all</div>
               <div className="menu-item" onClick={setBatchSelectionCoins}>apply to selected</div>
               <MintTextBox text={batchCoinsAll} onChange={setBatchCoinsAll} />
             </div>
@@ -316,7 +316,7 @@ export function AdminDashboard() {
                   <div className="account-column mono" >{m.account}</div>
                   <div>{m.twitter}</div>
                   <div>{m.name}</div>
-                  <MintTextBox text={batchCoins[m.account]} onChange={value => setMemberBatchCoins(m.account, value)} />
+                  <MintTextBox text={batchCoins[m.account] || ''} onChange={value => setMemberBatchCoins(m.account, value)} />
                 </div>
               )}
             </div>
