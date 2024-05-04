@@ -32,9 +32,12 @@ export function Registration() {
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState(false);
 
+  // Referral parameter
+  const referral = new URLSearchParams(window.location.search).get('referral');
+
   function registerUser({ name, twitter, discord, telegram }) {
     setRegistering(true);
-    register({ name, twitter, discord, telegram })
+    register({ name, twitter, discord, telegram, referral })
       .catch(setRegisterError)
       .finally(() => setRegistering(false));
   }
@@ -117,6 +120,7 @@ export function Registration() {
                 </div>
               </div>
               <SocialsForm buttonText="Register" onRegister={registerUser} registering={registering} disabled={!accepted} />
+              {referral && <p className="center">Referred By: {referral}</p>}
             </>
           }
 

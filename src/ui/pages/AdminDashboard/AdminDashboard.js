@@ -46,7 +46,7 @@ export function AdminDashboard() {
     const reverse = sortIndex === index;
     const sorted = [...members];
     if (index === 'registration') sorted.sort((a,b) => a.file.created - b.file.created);
-    else sorted.sort((a,b) => a[index].localeCompare(b[index]));
+    else sorted.sort((a,b) => (a[index] || '').localeCompare((b[index] || '')));
     if (reverse) sorted.reverse();
     setSortIndex(reverse ? 'rev-'+index : index);
     setSortedMembers(sorted);
@@ -148,6 +148,15 @@ export function AdminDashboard() {
     .finally(() => setBusy(false));
   }
 
+  function getReferrerName(referral) {
+    if (referral) {
+      const lcReferral = referral.toLowerCase();
+      const referrer = sortedMembers.find(m => m.account.toLowerCase() === lcReferral);
+      if (referrer) return referrer.discord || '';
+    }
+    return '';
+  }
+
   const accountValid = ecdsa.assert.isAddress(account);
 
   return (
@@ -187,6 +196,7 @@ export function AdminDashboard() {
                   <div onClick={() => sortMembersBy('discord')}>Discord</div>
                   <div onClick={() => sortMembersBy('telegram')}>Telegram</div>
                   <div onClick={() => sortMembersBy('name')}>Name</div>
+                  <div onClick={() => sortMembersBy('referral')}>Referred By</div>
                 </div>
                 {sortedMembers.map(m => 
                   <div className={"member" + (selectedMember === m ? ' selected' : '')} key={m.account} onClick={() => setSelectedMemberTo(m)}>
@@ -196,6 +206,7 @@ export function AdminDashboard() {
                     <div>{m.discord}</div>
                     <div>{m.telegram}</div>
                     <div>{m.name}</div>
+                    <div>{getReferrerName(m.referral)}</div>
                   </div>
                 )}
               </div>

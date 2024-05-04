@@ -158,12 +158,12 @@ export class Session {
   async updateMemberData(newData) {
     if (!this.isMember) return Promise.reject('not a member');
     if (!this.memberBubble) return Promise.reject('internal error: member bubble has not yet been constructed');
-    console.log("updating member details:", newData);
+    console.log("updating member details:", {...this.memberData, ...newData});
     const validatedData = await this.community.updateSocials(newData);
-    await this.memberBubble.setData({...newData, ...validatedData});
+    await this.memberBubble.setData({...this.memberData, ...newData, ...validatedData});
     this.memberData = this.memberBubble.memberData;
     this._saveState();
-    stateManager.dispatch('member-data', this.memberBubble.memberData);
+    stateManager.dispatch('member-data', {account: this.account, ...this.memberBubble.memberData});
   }
 
   /**
@@ -256,7 +256,7 @@ export class Session {
       this.memberData = this.memberBubble.memberData;
       this._saveState();
     }
-    stateManager.dispatch('member-data', this.memberBubble.memberData);
+    stateManager.dispatch('member-data', {account: this.account, ...this.memberBubble.memberData});
   }
 
   /**

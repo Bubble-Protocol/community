@@ -7,6 +7,7 @@ import './style.css';
 import { SocialsForm } from "../Registration/components/SocialsForm";
 import { stateManager } from "../../../state-context";
 import rehideNftImage from "../../images/rehide-nft-image.png";
+import { CopyTextButton } from "../../components/CopyTextButton";
 
 export function Dashboard() {
 
@@ -44,7 +45,7 @@ export function Dashboard() {
 
   function updateUser(data) {
     setRegistering(true);
-    updateData(data)
+    updateData({...data})
     .catch(setError)
     .finally(() => setRegistering(false));
   }
@@ -100,6 +101,12 @@ export function Dashboard() {
         <span className="points">Your NFTs</span>
         {ownsNft && <a href="https://polygonscan.com/address/0x35d0d209A821AB63665016e1229aba16f52906AB"><img className="nft-image" src={rehideNftImage} alt="rehide-nft"></img></a>}
         <div className="community-notice">Check back here regularly for your chance to mint {ownsNft && "other"} project milestone NFTs!</div>
+      </div>
+
+      <div className="page-width-section center">
+        <span className="points">Your Referral Link</span>
+        <div className="community-notice">Share the link below with your friends and earn points for each person who registers and participates.</div>
+        <CopyTextButton className="community-link" title="Copy link" copiedTitle="Copied to clipboard!" copyText={"https://bubbleprotocol.com/community?referral="+memberData.account} />
       </div>
 
       <div className="divider"></div>
