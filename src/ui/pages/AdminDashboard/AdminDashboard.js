@@ -8,6 +8,7 @@ import { stateManager } from "../../../state-context";
 import { TextBox } from "../../components/TextBox/TextBox";
 import { ecdsa } from "@bubble-protocol/crypto";
 import { formatDate } from "../../utils/date-utils";
+import { CopyTextButton } from "../../components/CopyTextButton";
 
 
 export function AdminDashboard() {
@@ -210,6 +211,9 @@ export function AdminDashboard() {
                   </div>
                 )}
               </div>
+              <div className="button-bar">
+                <CopyTextButton className="menu-item" title="Copy Twitter Usernames" copiedTitle="Copied!" copyText={JSON.stringify(sortedMembers.map(m => { return {twitter: m.twitter.trim().replace(/^[@#]/,''), account: m.account} }))} />
+              </div>
             </>
           }
 
@@ -382,3 +386,4 @@ function formatAccount(acc) {
 function isInteger(str) {
   return str.trim().match(/^[0-9]+$/)
 }
+

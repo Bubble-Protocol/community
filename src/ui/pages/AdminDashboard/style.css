@@ -146,6 +146,13 @@
   font-size: 14px;
 }
 
+.admin-dashboard .button-bar {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
 .admin-dashboard .batch-mint-button-bar {
   flex: 1;
   display: flex;

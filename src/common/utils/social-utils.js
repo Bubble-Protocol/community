@@ -16,7 +16,7 @@ export function extractUsername(text, hostname) {
       if (url.pathname.length > 0) {
         const parts = url.pathname.split('/');
         if (parts.length === 2) {
-          social = parts[1].replace(/^[@#]/, '');
+          social = parts[1].trim().replace(/^[@#]/, '');
         }
       }
     }
